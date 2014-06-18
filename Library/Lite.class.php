@@ -88,6 +88,7 @@ class Lite {
 			} else $e = $error;
 		} else {
 			$e['message'] = '系统错误';
+			$e['tips'] = '您可以联系管理员以便更好地完善它';
 		}
 		include(LITE_PATH . 'Template/error.php');
 		exit;
