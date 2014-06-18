@@ -2,28 +2,43 @@
 if (!defined('LITE_PATH')) exit();
 
 class Lite {
-	const controllerExt = '.controller.php';
-	const modelExt = '.model.php';
-
+	private static $classExt;
 	public static function start() {
 		require COMMON_PATH . 'function.php';
 		if (version_compare(PHP_VERSION, '5.4.0', '<')) {
 			ini_set('magic_quotes_runtime', 0);
 			define('MAGIC_QUOTES_GPC', get_magic_quotes_gpc()? true : false);
 		} else define('MAGIC_QUOTES_GPC', false);
+		self :: loadConfig();
 		spl_autoload_register('Lite::autoload');
 		register_shutdown_function('Lite::fatalError');
 		set_error_handler('Lite::appError');
 		set_exception_handler('Lite::appException');
 	}
 
+	public static function loadConfig() {
+		if (is_file(COMMON_PATH . 'config.php')) C(include(COMMON_PATH . 'config.php'));
+		if (is_file(APP_COMMON . 'config.php')) C(include(COMMON_PATH . 'config.php'));
+		$extraConfig = C('EXT_CONFIG');
+		if (is_string($extraConfig) && !empty($extraConfig)) $extraConfig = explode(',', $extraConfig);
+		if (is_array($extraConfig)) {
+			foreach($extraConfig as $config) {
+				if (is_file(APP_COMMON . $config . '.php')) C(include(APP_COMMON . $config . '.php'));
+			}
+		}
+		self :: $classExt = C('CLASS_EXT', null, '.class.php');
+	}
+
 	public static function autoload($classname) {
-		if (is_file(LIB_PATH . $classname . '.class.php')) include LIB_PATH . $classname . '.class.php';
+		if (is_file(LIB_PATH . $classname . self :: $classExt)) include LIB_PATH . $classname . self :: $classExt;
 		elseif (endsWith($classname, 'Controller')) {
-			$path = CONTROLLER_PATH . str_replace('Controller', self :: controllerExt, $classname);
+			$path = APP_CONTROLLER . str_replace('Controller', C('CONTROLLER_EXT', null, '.controller.php'), $classname);
 			if (is_file($path)) include $path;
 		} elseif (endsWith($classname, 'Model')) {
-			$path = MODEL_PATH . str_replace('Model', self :: modelExt, $classname);
+			$path = APP_MODEL . str_replace('Model', C('MODEL_EXT', null, '.model.php'), $classname);
+			if (is_file($path)) include $path;
+		} else {
+			$path = APP_LIB . $classname . self :: $classExt;
 			if (is_file($path)) include $path;
 		}
 	}
@@ -74,7 +89,7 @@ class Lite {
 		self :: showError($error);
 	}
 
-	public static function showError($error) {
+	private static function showError($error) {
 		$e = array();
 		if (APP_DEBUG) {
 			if (!is_array($error)) {
