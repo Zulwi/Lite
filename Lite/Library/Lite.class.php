@@ -7,26 +7,13 @@ class Lite {
 		register_shutdown_function('Lite::fatalError');
 		set_error_handler('Lite::appError');
 		set_exception_handler('Lite::appException');
+		spl_autoload_register('Lite::autoload');
 		require COMMON_PATH . 'function.php';
 		if (version_compare(PHP_VERSION, '5.4.0', '<')) {
 			ini_set('magic_quotes_runtime', 0);
 			define('MAGIC_QUOTES_GPC', get_magic_quotes_gpc()? true : false);
 		} else define('MAGIC_QUOTES_GPC', false);
-		self :: loadConfig();
-		spl_autoload_register('Lite::autoload');
-	}
-
-	public static function loadConfig() {
-		if (is_file(COMMON_PATH . 'config.php')) C(include(COMMON_PATH . 'config.php'));
-		if (is_file(APP_COMMON . 'config.php')) C(include(APP_COMMON . 'config.php'));
-		$extraConfig = C('EXT_CONFIG');
-		if (is_string($extraConfig) && !empty($extraConfig)) $extraConfig = explode(',', $extraConfig);
-		if (is_array($extraConfig)) {
-			foreach($extraConfig as $config) {
-				if (is_file(APP_COMMON . $config . '.php')) C(include(APP_COMMON . $config . '.php'));
-			}
-		}
-		self :: $classExt = C('CLASS_EXT', null, '.class.php');
+		App :: init();
 	}
 
 	public static function autoload($classname) {
@@ -39,7 +26,7 @@ class Lite {
 		} elseif (endsWith($classname, 'Model')) {
 			$path = APP_MODEL . str_replace('Model', C('MODEL_EXT', null, '.model.php'), $classname);
 		} else {
-			$path = APP_LIB . $classname . self :: $classExt;
+			$path = APP_LIB . $classname . C('CLASS_EXT');
 		}
 		if (is_file($path)) include $path;
 	}
