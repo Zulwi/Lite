@@ -4,5 +4,5 @@ return array('DB_HOST' => 'localhost',
 	'DB_USER' => 'sign',
 	'DB_PWD' => 'nzjZj7Bxn5LM9RJa',
 	'DB_NAME' => 'sign',
-	'URL_MODEL' => 3,
+	'URL_MODEL' => 1,
 	);

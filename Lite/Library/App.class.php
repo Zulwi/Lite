@@ -38,24 +38,25 @@ class App {
 			);
 		$urlModel = C('URL_MODEL', null, 0);
 		$controller = $action = $param = '';
+		$pathinfo = !empty($_SERVER['PATH_INFO']) ? $_SERVER['PATH_INFO'] : '';
 		if ($urlModel != self :: URL_MODEL_NORMAL) {
-			$_SERVER['PATH_INFO'] = isset($_GET[$var['path']]) ? $_GET[$var['path']] : '';
+			$pathinfo = isset($_GET[$var['path']]) ? $_GET[$var['path']] : $pathinfo;
 			unset($_GET[$var['path']]);
 		}
-		if (startsWith($_SERVER['PATH_INFO'], '/')) $_SERVER['PATH_INFO'] = substr($_SERVER['PATH_INFO'], 1);
+		if (startsWith($pathinfo, '/')) $pathinfo = substr($pathinfo, 1);
 		switch ($urlModel) {
 			case self :: URL_MODEL_PATHINFO:
 			case self :: URL_MODEL_SPECIAL:
 			case self :: URL_MODEL_REWRITE:
 				$matches = array();
-				if (preg_match_all('#(\w+)/(\w+)#', $_SERVER['PATH_INFO'], $matches)) {
+				if (preg_match_all('#(\w+)/(\w+)#', $pathinfo, $matches)) {
 					if (count($matches) == 3) {
 						foreach($matches[1] as $key => $value) {
 							$_GET[$value] = $matches[2][$key];
 						}
 					}
 				}
-				if(!empty($_SERVER['PATH_INFO'])) $_GET[0] = explode('/', $_SERVER['PATH_INFO']);
+				if(!empty($pathinfo)) $_GET[0] = explode('/', $pathinfo);
 			case self :: URL_MODEL_NORMAL:
 				$controller = isset($_GET[$var['controller']]) ? $_GET[$var['controller']] : (isset($_GET[0][0]) ? $_GET[0][0] : C('DEFAULT_CONTROLLER', null, 'Index'));
 				$action = isset($_GET[$var['action']]) ? $_GET[$var['action']] : (isset($_GET[0][1]) ? $_GET[0][1] : C('DEFAULT_ACTION', null, 'Index'));
