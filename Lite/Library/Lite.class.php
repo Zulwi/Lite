@@ -10,10 +10,11 @@ class Lite {
 		spl_autoload_register('Lite::autoload');
 		require COMMON_PATH . 'function.php';
 		if (version_compare(PHP_VERSION, '5.4.0', '<')) {
-			ini_set('magic_quotes_runtime', 0);
-			define('MAGIC_QUOTES_GPC', get_magic_quotes_gpc()? true : false);
+			@ini_set('magic_quotes_runtime', 0);
+			define('MAGIC_QUOTES_GPC', get_magic_quotes_gpc() ? true : false);
 		} else define('MAGIC_QUOTES_GPC', false);
-		App :: init();
+		$app = new App();
+		$app -> init();
 	}
 
 	public static function autoload($classname) {
@@ -89,8 +90,8 @@ class Lite {
 				$e['trace'] = ob_get_clean();
 			} else $e = $error;
 		} else {
-			$e['message'] = '系统错误';
-			$e['tips'] = '您可以联系管理员以便更好地完善它';
+			$e['message'] = L('SYSTEM_ERROR');
+			$e['tips'] = L('CONTACT_ADMIN');
 		}
 		include(LITE_PATH . 'Template/error.php');
 		exit;

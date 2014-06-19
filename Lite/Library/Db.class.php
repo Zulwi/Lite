@@ -33,7 +33,7 @@ class Db {
 				$type = 'SQLite';
 				break;
 			default:
-				throw new Exception('不支持的数据库类型：' . $this -> config['type']);
+				E('不支持的数据库类型：' . $this -> config['type']);
 		}
 		$classname = $type . 'Adapter';
 		$this -> adapter = new $classname($this -> config);
@@ -76,21 +76,21 @@ class Db {
 	}
 
 	public function where($where) {
-		if (empty($where)) E('where 参数不能为空!');
+		if (empty($where)) E(L('PARAM_ERROR') . ':where');
 		if (is_array($where)) $this -> clause['where'] = array_unique($where);
 		elseif (is_string($where)) $this -> clause['where'][] = $where;
 		return $this;
 	}
 
 	public function field($field) {
-		if (empty($field)) E('field 参数不能为空!');
+		if (empty($field)) E(L('PARAM_ERROR') . ':field');
 		if (is_array($field)) $this -> clause['field'] = array_unique($field);
 		elseif (is_string($field)) $this -> clause['field'] = explode(',', $field);
 		return $this;
 	}
 
 	public function table($table) {
-		if (empty($table)) E('table 参数不能为空!');
+		if (empty($table)) E(L('PARAM_ERROR') . ':table');
 		if (is_array($table)) $this -> clause['table'] = array_unique($table);
 		elseif (is_string($table)) $this -> clause['table'] = explode(',', $table);
 		return $this;
@@ -116,7 +116,7 @@ class Db {
 	}
 
 	public function insert($insert) {
-		if (empty($insert)) E('insert 参数不能为空!');
+		if (empty($insert)) E(L('PARAM_ERROR') . ':insert');
 		if (is_array($insert)) $this -> clause['insert'] = array_unique($insert);
 		elseif (is_string($insert)) $this -> clause['insert'] = explode(',', $insert);
 		$this -> clause['type'] = 'insert';
@@ -124,7 +124,7 @@ class Db {
 	}
 
 	public function update($update) {
-		if (empty($update)) E('update 参数不能为空!');
+		if (empty($update)) E(L('PARAM_ERROR') . ':update');
 		if (is_array($update)) $this -> clause['update'] = array_unique($update);
 		elseif (is_string($update)) $this -> clause['update'] = explode(',', $update);
 		$this -> clause['type'] = 'update';
@@ -132,7 +132,7 @@ class Db {
 	}
 
 	public function delete() {
-		if (empty($this -> clause['where'])) E('delete 前请指定 where!');
+		if (empty($this -> clause['where'])) E(L('PARAM_ERROR') . ':where');
 		$this -> clause['type'] = 'delete';
 		return $this -> query($this -> buildSql());
 	}
@@ -152,5 +152,9 @@ class Db {
 		$this -> clause['limit'] = array();
 		$this -> clause['extra'] = array();
 		$this -> clause['type'] = '';
+	}
+
+	public function __destruct() {
+		$this -> adapter -> close();
 	}
 }

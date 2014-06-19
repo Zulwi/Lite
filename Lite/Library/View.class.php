@@ -2,9 +2,9 @@
 if (!defined('LITE_PATH')) exit();
 
 class View {
-	private $controllerName;
+	private $controller;
 	public function __construct($controller) {
-		$this -> controllerName = $controller;
+		$this -> controller = $controller;
 	}
 
 	public function display($template = '', $content = '') {
@@ -12,7 +12,7 @@ class View {
 			if (empty($content)) {
 				$this -> parseView($this -> parseViewFile(__ACTION__));
 			} else {
-				ob_clean();
+				setCharset();
 				echo $content;
 			}
 		} else {
@@ -21,13 +21,13 @@ class View {
 	}
 
 	public function parseViewFile($template) {
-		$path = APP_VIEW . $this -> controllerName . $template;
+		$path = APP_VIEW . $this -> controller . '/' . $template . '.' . C('VIEW_EXT', null, 'php');
 		if (!is_file($path)) return false;
-		return $path
+		return $path;
 	}
 
 	private function parseView($path) {
-		if (!is_file($path)) E('模板文件缺失：' . $path);
+		if (!is_file($path)) E(L('TEMPLATE_NOT_EXIST'));
 		include $path;
 	}
 }

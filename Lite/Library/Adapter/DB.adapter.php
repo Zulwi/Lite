@@ -6,6 +6,9 @@ abstract class DBAdapter {
 
 	public abstract function connect($config);
 	public abstract function buildSql($clause);
+	public abstract function free();
+	public abstract function close();
+	public abstract function error();
 
 	protected function implode($clause) {
 		if (is_array($clause)) $clause = implode(',', $clause);

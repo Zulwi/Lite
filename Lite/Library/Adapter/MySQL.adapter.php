@@ -2,12 +2,12 @@
 if (!defined('LITE_PATH')) exit();
 class MySQLAdapter extends DBAdapter {
 	public function __construct($config) {
-		if (!extension_loaded('mysql')) E('当前主机不支持 MySQL');
+		if (!extension_loaded('mysql')) E(L('DB_UNSUPPORTED') . ': MySQL');
 		$this -> connect($config);
 	}
 
 	public function connect($config) {
-		if (empty($config)) E('数据库配置信息出错');
+		if (empty($config)) E(L('DB_CONFIG_ERROR'));
 		$host = $config['host'] . ($config['port']?":{$config['port']}":'');
 		$this -> linkId = mysql_connect($host, $config['username'], $config['password'], true, 131072);
 		if (!$this -> linkId || (!empty($config['database']) && !mysql_select_db($config['database'], $this -> linkId))) E(mysql_error());
@@ -25,7 +25,7 @@ class MySQLAdapter extends DBAdapter {
 				if (empty($clause['field'])) $clause['field'] = '*';
 				$sqlTemplate = str_replace('%FIELD%', $this -> implode($clause['field']), $sqlTemplate);
 				$sqlTemplate = str_replace('%FROM%', 'FROM', $sqlTemplate);
-				if (empty($clause['table'])) E('select 前必须指定 table');
+				if (empty($clause['table'])) E(L('PARAM_ERROR') . ':table');
 				$sqlTemplate = str_replace('%TABLE%', $this -> implode($clause['table']), $sqlTemplate);
 				$sqlTemplate = str_replace('%DATA%', '', $sqlTemplate);
 				if (!empty($clause['join'])) $sqlTemplate = str_replace('%JOIN%', $this -> implode($clause['join']), $sqlTemplate);
@@ -56,5 +56,18 @@ class MySQLAdapter extends DBAdapter {
 	}
 
 	public function query() {
+	}
+
+	public function free() {
+	}
+
+	public function error() {
+	}
+
+	public function close() {
+		if ($this -> linkId) {
+			mysql_close($this -> linkId);
+		}
+		$this -> linkId = null;
 	}
 }

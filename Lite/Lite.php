@@ -10,9 +10,11 @@ defined('APP_CONTROLLER') or define('APP_CONTROLLER', APP_PATH . 'Controller/');
 defined('APP_MODEL') or define('APP_MODEL', APP_PATH . 'Model/');
 defined('APP_VIEW') or define('APP_VIEW', APP_PATH . 'View/');
 defined('APP_COMMON') or define('APP_COMMON', APP_PATH . 'Common/');
+defined('APP_LANG') or define('APP_LANG', APP_PATH . 'Language/');
 
 define('COMMON_PATH', realpath(LITE_PATH . 'Common') . '/');
 define('LIB_PATH', realpath(LITE_PATH . 'Library') . '/');
+define('LANG_PATH', realpath(LITE_PATH . 'Language') . '/');
 define('LITE_VERSION', '1.0.0 α');
 if (!defined('__ROOT__')) {
 	$root = rtrim(dirname(rtrim($_SERVER['SCRIPT_NAME'], '/')), '/');

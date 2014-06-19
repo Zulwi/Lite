@@ -10,6 +10,17 @@ function C($key, $value = null, $default = null) {
 	} elseif (is_array($key)) $_config = array_merge($_config, array_change_key_case($key, CASE_UPPER));
 }
 
+function L($name = null, $value = null) {
+	static $_lang = array();
+	if (empty($name)) return $_lang;
+	if (is_string($name)) {
+		$name = strtoupper($name);
+		if (is_null($value)) return isset($_lang[$name]) ? $_lang[$name] : $name;
+		$_lang[$name] = $value;
+		return;
+	} elseif (is_array($name)) $_lang = array_merge($_lang, array_change_key_case($name, CASE_UPPER));
+}
+
 function E($msg, $code = null) {
 	throw new Exception($msg, $code);
 }
@@ -28,6 +39,10 @@ function sendHttpError() {
 	ob_end_clean();
 	header('HTTP/1.1 404 Not Found');
 	header('Status:404 Not Found');
+}
+
+function setCharset($charset = 'utf-8') {
+	header("Content-type: text/html; charset=" . $charset);
 }
 
 function redirect($url) {

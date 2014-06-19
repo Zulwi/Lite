@@ -1,10 +1,10 @@
 <?php
 if (!defined('LITE_PATH')) exit();
 
-class Controller {
+abstract class Controller {
 	private $view;
 	public function __construct() {
-		$this -> view = new View(__CLASS__);
+		$this -> view = new View(__MODULE__);
 		if (method_exists($this, '_init')) $this -> _init();
 	}
 
@@ -21,9 +21,9 @@ class Controller {
 			if (method_exists($this, '_empty')) $this -> _empty($method, $args);
 			else {
 				$path = $this -> view -> parseViewFile($method);
-				if ($path === false) E('Action 错误' . ':' . method);
+				if ($path === false) E(L('ERROR_ACTION') . ':' . __ACTION__);
 				$this -> view -> display();
 			}
-		} else E(__CLASS__ . '类不存在 Method：' . $method);
+		} else E(L('METHOD_NOT_EXIST') . ':' . __ACTION__);
 	}
 }
