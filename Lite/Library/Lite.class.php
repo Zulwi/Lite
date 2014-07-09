@@ -93,7 +93,7 @@ class Lite {
 			$e['message'] = L('SYSTEM_ERROR');
 			$e['tips'] = L('CONTACT_ADMIN');
 		}
-		include(LITE_PATH . 'Template/error.php');
+		include(LITE_PATH . 'Template/sys_error.php');
 		exit;
 	}
 }
