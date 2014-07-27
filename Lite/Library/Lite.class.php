@@ -1,9 +1,23 @@
 <?php
-if (!defined('LITE_PATH')) exit();
+/**
+ * Copyright (c) 2010-2014 Zulwi Studio All Rights Reserved.
+ * Author  JerryLocke
+ * DATE    2014/7/27
+ * Blog    http://Jerry.hk
+ * Email   i@Jerry.hk
+ */
 
+if (!defined('LITE_PATH')) exit;
+
+/**
+ * Lite框架主类
+ * Class Lite
+ */
 class Lite {
-	private static $classExt;
 
+	/**
+	 * 框架初始化
+	 */
 	public static function start() {
 		register_shutdown_function('Lite::fatalError');
 		set_error_handler('Lite::appError');
@@ -19,33 +33,43 @@ class Lite {
 		$app ->init();
 	}
 
+	/**
+	 * 自动加载类库
+	 * @param $classname 类名
+	 */
 	public static function autoload($classname) {
 		$path = LIB_PATH . $classname . '.class.php';
 		if (is_file($path)) {
 		} elseif (endsWith($classname, 'Adapter')) {
 			$path = LIB_PATH . 'Adapter/' . str_replace('Adapter', '', $classname) . '.adapter.php';
 		} elseif (endsWith($classname, 'Controller')) {
-			$path = COMMON_GROUP . CONTROLLER_DIR . str_replace('Controller', C('CONTROLLER_EXT', null, '.controller.php'), $classname);
-			if (!is_file($path) && defined('GROUP_PATH')) $path = GROUP_PATH . CONTROLLER_DIR . str_replace('Controller', C('CONTROLLER_EXT', null, '.controller.php'), $classname);
+			$path = COMMON_GROUP . CONTROLLER_DIR . str_replace('Controller', C('CONTROLLER_EXT'), $classname);
+			if (!is_file($path) && defined('GROUP_PATH')) $path = GROUP_PATH . CONTROLLER_DIR . str_replace('Controller', C('CONTROLLER_EXT'), $classname);
 		} elseif (endsWith($classname, 'Model')) {
-			$path = COMMON_GROUP . CONTROLLER_DIR . str_replace('Model', C('MODEL_EXT', null, '.model.php'), $classname);
-			if (!is_file($path) && defined('GROUP_PATH')) $path = GROUP_PATH . MODEL_DIR . str_replace('Model', C('MODEL_EXT', null, '.model.php'), $classname);
+			$path = COMMON_GROUP . CONTROLLER_DIR . str_replace('Model', C('MODEL_EXT'), $classname);
+			if (!is_file($path) && defined('GROUP_PATH')) $path = GROUP_PATH . MODEL_DIR . str_replace('Model', C('MODEL_EXT'), $classname);
 		} else {
 			$path = APP_LIB . $classname . C('CLASS_EXT');
 		}
 		if (is_file($path)) include $path;
 	}
 
+	/**
+	 * 加载框架默认配置
+	 */
 	public static function loadConfig() {
-		if (is_file(COMMON_PATH . 'config.php')) C(include(COMMON_PATH . 'config.php'));
-		if (is_file(COMMON_GROUP . 'Common/config.php')) {
+		if (is_file(COMMON_PATH . CONFIG_FILE)) C(include(COMMON_PATH . CONFIG_FILE));
+		if (is_file(COMMON_GROUP . CONFIG_DIR . CONFIG_FILE)) {
 		}
-		C(include(COMMON_GROUP . 'Common/config.php'));
-		L(include LANG_PATH . strtolower(C('DEFAULT_LANG', null, 'zh-cn')) . '.php');
-		$langPath = COMMON_GROUP . LANG_DIR . strtolower(C('DEFAULT_LANG', null, 'zh-cn')) . '.php';
+		C(include(COMMON_GROUP . CONFIG_DIR . CONFIG_FILE));
+		L(include LANG_PATH . strtolower(C('DEFAULT_LANG')) . '.php');
+		$langPath = COMMON_GROUP . LANG_DIR . strtolower(C('DEFAULT_LANG')) . '.php';
 		if (is_file($langPath)) L(include $langPath);
 	}
 
+	/**
+	 * 致命错误回调方法
+	 */
 	public static function fatalError() {
 		if ($e = error_get_last()) {
 			switch ($e['type']) {
@@ -61,6 +85,13 @@ class Lite {
 		}
 	}
 
+	/**
+	 * 普通错误回调方法
+	 * @param $errno 错误代码
+	 * @param $errstr 错误信息
+	 * @param $errfile 错误文件
+	 * @param $errline 错误行数
+	 */
 	public static function appError($errno, $errstr, $errfile, $errline) {
 		switch ($errno) {
 			case E_ERROR:
@@ -75,6 +106,10 @@ class Lite {
 		}
 	}
 
+	/**
+	 * 普通异常回调方法
+	 * @param $e 异常
+	 */
 	public static function appException($e) {
 		$error = array();
 		$error['message'] = $e ->getMessage();
@@ -91,6 +126,10 @@ class Lite {
 		self :: showError($error);
 	}
 
+	/**
+	 * 错误打印方法
+	 * @param $error 错误
+	 */
 	private static function showError($error) {
 		$e = array();
 		if (APP_DEBUG) {

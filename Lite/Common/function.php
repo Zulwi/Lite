@@ -1,6 +1,21 @@
 <?php
-if (!defined('LITE_PATH')) exit();
+/**
+ * Copyright (c) 2010-2014 Zulwi Studio All Rights Reserved.
+ * Author  JerryLocke
+ * DATE    2014/7/27
+ * Blog    http://Jerry.hk
+ * Email   i@Jerry.hk
+ */
 
+if(! defined('LITE_PATH')) exit;
+
+/**
+ * 配置函数
+ * @param $key 配置名
+ * @param null $value 配置值
+ * @param null $default 默认值
+ * @return array|null 结果
+ */
 function C($key, $value = null, $default = null) {
 	static $_config = array();
 	if (empty($key)) return $_config;
@@ -10,6 +25,12 @@ function C($key, $value = null, $default = null) {
 	} elseif (is_array($key)) $_config = array_merge($_config, array_change_key_case($key, CASE_UPPER));
 }
 
+/**
+ * 语言函数
+ * @param null $name 语言名
+ * @param null $value 语言值
+ * @return array|string 结果
+ */
 function L($name = null, $value = null) {
 	static $_lang = array();
 	if (empty($name)) return $_lang;
@@ -21,20 +42,42 @@ function L($name = null, $value = null) {
 	} elseif (is_array($name)) $_lang = array_merge($_lang, array_change_key_case($name, CASE_UPPER));
 }
 
+/**
+ * 抛出错误
+ * @param $msg 错误信息
+ * @param null $code 错误代码
+ * @throws Exception 抛出异常
+ */
 function E($msg, $code = null) {
 	throw new Exception($msg, $code);
 }
 
+/**
+ * 检查字符串是否以另一字符串开始
+ * @param $str 要检查的字符串
+ * @param $prefix 开始的字符串
+ * @return bool 结果
+ */
 function startsWith($str, $prefix) {
 	if (substr($str, 0, strlen($prefix))==$prefix) return true;
 	return false;
 }
 
+/**
+ * 检查字符串是否以另一字符串结束
+ * @param $str 要检查的字符串
+ * @param $suffix 结束的字符串
+ * @return bool 结果
+ */
 function endsWith($str, $suffix) {
 	if (substr($str, -strlen($suffix))==$suffix) return true;
 	return false;
 }
 
+/**
+ * 发送HTTP状态码
+ * @param $code 状态码
+ */
 function sendHttpStatus($code) {
 	static $_status = array( // Informational 1xx
 		100 => 'Continue', 101 => 'Switching Protocols',
@@ -58,15 +101,28 @@ function sendHttpStatus($code) {
 	}
 }
 
+/**
+ * 设置编码
+ * @param string $charset 编码
+ */
 function setCharset($charset = 'utf-8') {
 	header("Content-type: text/html; charset=" . $charset);
 }
 
+/**
+ * 重定向
+ * @param $url 要重定向的URL
+ */
 function redirect($url) {
 	ob_end_clean();
 	header('Location:' . $url);
 }
 
+/**
+ * 抛出对浏览器友好的变量
+ * @param $var 变量
+ * @param $exit 是否终止程序运行
+ */
 function dump($var, $exit) {
 	echo '<pre>';
 	var_dump($var);
@@ -74,13 +130,25 @@ function dump($var, $exit) {
 	if ($exit) exit();
 }
 
+/**
+ * 生成唯一识别码
+ * @param $mix 要生成的变量/对象/资源
+ * @return string 唯一识别码
+ */
 function toGUIDString($mix) {
 	if (is_object($mix)) return spl_object_hash($mix); elseif (is_resource($mix)) $mix = get_resource_type($mix) . strval($mix);
 	else $mix = serialize($mix);
 	return md5($mix);
 }
 
-function cutStr($string, $length, $dot = ' ...') {
+/**
+ * 缩略字符串
+ * @param $string 要切割的字符串
+ * @param $length 缩略长度
+ * @param string $dot 超出长度的内容的代替内容
+ * @return mixed|string 缩略后的字符串
+ */
+function cutStr($string, $length, $dot = '...') {
 	if (strlen($string)<=$length) return $string;
 	$pre = chr(1);
 	$end = chr(1);
@@ -126,12 +194,22 @@ function cutStr($string, $length, $dot = ' ...') {
 	return $strcut . $dot;
 }
 
+/**
+ * 从HTML源码中取得图片路径
+ * @param $content HTML代码
+ * @return null 图片路径
+ */
 function getImgSrc($content) {
 	$regx = "/<[img|IMG].*?src=[\'|\"](.*?(?:[\.gif|\.jpg|\.png]))[\'|\"].*?[\/]?>/";
 	preg_match_all($regx, $content, $matches);
 	return isset($matches[1][0]) ? $matches[1][0] : null;
 }
 
+/**
+ * 过滤文本
+ * @param $str 要过滤的文本
+ * @return string 过滤后的文本
+ */
 function wrapText($str) {
 	$str = trim($str);
 	$str = str_replace("\t", '', $str);
@@ -141,6 +219,12 @@ function wrapText($str) {
 	return trim($str);
 }
 
+/**
+ * 检查字符串是否合法
+ * @param $type 检查类型：email、password
+ * @param $string 要检查的字符串
+ * @return int 结果
+ */
 function checkString($type, $string) {
 	switch ($type) {
 		case 'email':
@@ -150,6 +234,12 @@ function checkString($type, $string) {
 	}
 }
 
+/**
+ * 生成随机字符串
+ * @param int $length 长度
+ * @param int $type 类型：-1为特殊字符+英文大小写+数字组合，0为英文大小写+数字组合，1为数字，2为英文小写，3为英文大写，4为特殊字符
+ * @return string 随机生成的字符串
+ */
 function randCode($length = 5, $type = 0) {
 	$arr = array(1 => "0123456789", 2 => "abcdefghijklmnopqrstuvwxyz", 3 => "ABCDEFGHIJKLMNOPQRSTUVWXYZ", 4 => "~@#$%^&*(){}[]|");
 	if ($type==0) {
