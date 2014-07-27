@@ -3,6 +3,7 @@ if (!defined('LITE_PATH')) exit();
 
 class Lite {
 	private static $classExt;
+
 	public static function start() {
 		register_shutdown_function('Lite::fatalError');
 		set_error_handler('Lite::appError');
@@ -13,8 +14,9 @@ class Lite {
 			@ini_set('magic_quotes_runtime', 0);
 			define('MAGIC_QUOTES_GPC', get_magic_quotes_gpc() ? true : false);
 		} else define('MAGIC_QUOTES_GPC', false);
+		self::loadConfig();
 		$app = new App();
-		$app -> init();
+		$app ->init();
 	}
 
 	public static function autoload($classname) {
@@ -23,13 +25,25 @@ class Lite {
 		} elseif (endsWith($classname, 'Adapter')) {
 			$path = LIB_PATH . 'Adapter/' . str_replace('Adapter', '', $classname) . '.adapter.php';
 		} elseif (endsWith($classname, 'Controller')) {
-			$path = APP_CONTROLLER . str_replace('Controller', C('CONTROLLER_EXT', null, '.controller.php'), $classname);
+			$path = COMMON_GROUP . CONTROLLER_DIR . str_replace('Controller', C('CONTROLLER_EXT', null, '.controller.php'), $classname);
+			if (!is_file($path) && defined('GROUP_PATH')) $path = GROUP_PATH . CONTROLLER_DIR . str_replace('Controller', C('CONTROLLER_EXT', null, '.controller.php'), $classname);
 		} elseif (endsWith($classname, 'Model')) {
-			$path = APP_MODEL . str_replace('Model', C('MODEL_EXT', null, '.model.php'), $classname);
+			$path = COMMON_GROUP . CONTROLLER_DIR . str_replace('Model', C('MODEL_EXT', null, '.model.php'), $classname);
+			if (!is_file($path) && defined('GROUP_PATH')) $path = GROUP_PATH . MODEL_DIR . str_replace('Model', C('MODEL_EXT', null, '.model.php'), $classname);
 		} else {
 			$path = APP_LIB . $classname . C('CLASS_EXT');
 		}
 		if (is_file($path)) include $path;
+	}
+
+	public static function loadConfig() {
+		if (is_file(COMMON_PATH . 'config.php')) C(include(COMMON_PATH . 'config.php'));
+		if (is_file(COMMON_GROUP . 'Common/config.php')) {
+		}
+		C(include(COMMON_GROUP . 'Common/config.php'));
+		L(include LANG_PATH . strtolower(C('DEFAULT_LANG', null, 'zh-cn')) . '.php');
+		$langPath = COMMON_GROUP . LANG_DIR . strtolower(C('DEFAULT_LANG', null, 'zh-cn')) . '.php';
+		if (is_file($langPath)) L(include $langPath);
 	}
 
 	public static function fatalError() {
@@ -63,17 +77,17 @@ class Lite {
 
 	public static function appException($e) {
 		$error = array();
-		$error['message'] = $e -> getMessage();
-		$trace = $e -> getTrace();
-		if ('E' == $trace[0]['function']) {
+		$error['message'] = $e ->getMessage();
+		$trace = $e ->getTrace();
+		if ('E'==$trace[0]['function']) {
 			$error['file'] = $trace[0]['file'];
 			$error['line'] = $trace[0]['line'];
 		} else {
-			$error['file'] = $e -> getFile();
-			$error['line'] = $e -> getLine();
+			$error['file'] = $e ->getFile();
+			$error['line'] = $e ->getLine();
 		}
-		$error['trace'] = $e -> getTraceAsString();
-		sendHttpError();
+		$error['trace'] = $e ->getTraceAsString();
+		sendHttpStatus();
 		self :: showError($error);
 	}
 

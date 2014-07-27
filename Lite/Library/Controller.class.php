@@ -15,18 +15,7 @@ abstract class Controller {
 	public function show($content) {
 		$this -> view -> display(null, $content);
 	}
-	
-	public function __call($method, $args) {
-		if(0 === strcasecmp($method, __ACTION__)){
-			if(method_exists($this, '_empty')) $this -> _empty($method, $args);
-			else{
-				$path = $this -> view -> parseViewFile($method);
-				if($path === false) E(L('ERROR_ACTION') . ':' . __ACTION__);
-				$this -> view -> display();
-			}
-		}else
-			E(L('METHOD_NOT_EXIST') . ':' . __ACTION__);
-	}
+
 	public function success($msg = '操作成功', $tips = '', $redirect = '', $delay = 5) {
 		$this -> msg($msg, $tips, $redirect, $delay);
 	}
@@ -61,5 +50,18 @@ abstract class Controller {
 			include (LITE_PATH . 'Template/app_msg.php');
 			exit();
 		}
+	}
+	
+
+	public function __call($method, $args) {
+		if(0 === strcasecmp($method, __ACTION__)){
+			if(method_exists($this, '_empty')) $this -> _empty($method, $args);
+			else{
+				$path = $this -> view -> parseViewFile($method);
+				if($path === false) E(L('ERROR_ACTION') . ':' . __ACTION__);
+				$this -> view -> display();
+			}
+		}else
+			E(L('METHOD_NOT_EXIST') . ':' . __ACTION__);
 	}
 }

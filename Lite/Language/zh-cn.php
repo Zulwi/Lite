@@ -1,9 +1,10 @@
 <?php
 return array('MODULE' => '模块',
 	'ACTION' => '操作',
+	'GROUP_NOT_EXIST' => '无法加载分组',
 	'MODULE_NOT_EXIST' => '无法加载模块',
 	'CONTROLLER_NOT_EXIST' => '无法加载控制器',
-	'MODEL_NOT_EXIST' => '无法加载控制器模型',
+	'MODEL_NOT_EXIST' => '无法加载模型',
 	'LANGUAGE_NOT_EXIST' => '无法加载语言包',
 	'TEMPLATE_NOT_EXIST' => '模板不存在',
 	'ERROR_ACTION' => '非法操作',

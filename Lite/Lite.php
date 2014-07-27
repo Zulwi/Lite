@@ -1,25 +1,26 @@
 <?php
-define('START_TIME', microtime(true));
-define('TIMESTAMP', $_SERVER['REQUEST_TIME']);
+define('START_TIME', microtime(true)); //记录系统开始时间
+define('TIMESTAMP', $_SERVER['REQUEST_TIME']); //当前时间戳
 
-defined('LITE_PATH') or define('LITE_PATH', dirname(__FILE__) . '/');
-defined('APP_DEBUG') or define('APP_DEBUG', false);
-defined('APP_PATH') or define('APP_PATH', dirname($_SERVER['SCRIPT_FILENAME']) . '/App');
-defined('APP_LIB') or define('APP_LIB', APP_PATH . 'Library/');
-defined('APP_CONTROLLER') or define('APP_CONTROLLER', APP_PATH . 'Controller/');
-defined('APP_MODEL') or define('APP_MODEL', APP_PATH . 'Model/');
-defined('APP_VIEW') or define('APP_VIEW', APP_PATH . 'View/');
-defined('APP_COMMON') or define('APP_COMMON', APP_PATH . 'Common/');
-defined('APP_LANG') or define('APP_LANG', APP_PATH . 'Language/');
+defined('LITE_PATH') or define('LITE_PATH', dirname(__FILE__) . '/'); // Lite框架根目录
+defined('APP_DEBUG') or define('APP_DEBUG', false); // APP调试
+defined('APP_PATH') or define('APP_PATH', dirname($_SERVER['SCRIPT_FILENAME']) . '/App/'); // 项目根目录
+defined('APP_LIB') or define('APP_LIB', APP_PATH . 'Library/'); // 项目类库目录
+defined('COMMON_GROUP') or define('COMMON_GROUP', APP_PATH . 'Common/'); // 项目公共分组
+defined('CONTROLLER_DIR') or define('CONTROLLER_DIR', 'Controller/'); // 项目控制器类目录名
+defined('MODEL_DIR') or define('MODEL_DIR', 'Model/'); // 项目模型类目录名
+defined('VIEW_DIR') or define('VIEW_DIR', 'View/'); // 项目视图类目录名
+defined('COMMON_DIR') or define('COMMON_DIR', 'Common/'); // 项目配置文件目录名
+defined('LANG_DIR') or define('LANG_DIR', 'Language/'); // 项目语言文件目录名
 
-define('COMMON_PATH', LITE_PATH . 'Common/');
-define('LIB_PATH', LITE_PATH . 'Library/');
-define('LANG_PATH', LITE_PATH . 'Language/');
-define('LITE_VERSION', '1.0.0 α');
-if (!defined('__ROOT__')) {
+define('COMMON_PATH', LITE_PATH . 'Common/'); // Lite 系统配置文件目录
+define('LIB_PATH', LITE_PATH . 'Library/'); // Lite 系统类库目录
+define('LANG_PATH', LITE_PATH . 'Language/'); // Lite 系统语言文件目录
+define('LITE_VERSION', '1.0.0 α'); // Lite 版本号
+if (!defined('__ROOT__')) { // 网站根目录
 	$root = rtrim(dirname(rtrim($_SERVER['SCRIPT_NAME'], '/')), '/');
-	define('__ROOT__', (($root == '/' || $root == '\\') ? '' : $root));
+	define('__ROOT__', (($root=='/' || $root=='\\') ? '' : $root));
 }
-defined('__PUBLIC__') or define('__PUBLIC__', __ROOT__ . 'Public/');
+defined('__PUBLIC__') or define('__PUBLIC__', __ROOT__ . 'Public/');// 网站公共资源目录
 require LIB_PATH . 'Lite.class.php';
 Lite :: start();
