@@ -1,13 +1,14 @@
 <?php
 /**
  * Copyright (c) 2010-2014 Zulwi Studio All Rights Reserved.
- * Author  JerryLocke
- * DATE    2014/7/27
+ * Author  @JerryLocke
+ * Date    2014/7/27
  * Blog    http://Jerry.hk
  * Email   i@Jerry.hk
+ * Team    http://www.zhuwei.cc
  */
 
-if(! defined('LITE_PATH')) exit;
+if (!defined('LITE_PATH')) exit;
 
 class MySQLAdapter extends DBAdapter {
 	public function __construct($config) {
@@ -34,7 +35,7 @@ class MySQLAdapter extends DBAdapter {
 				if (empty($clause['field'])) $clause['field'] = '*';
 				$sqlTemplate = str_replace('%FIELD%', $this ->implode($clause['field']), $sqlTemplate);
 				$sqlTemplate = str_replace('%FROM%', 'FROM', $sqlTemplate);
-				if (empty($clause['table'])) E(L('PARAM_ERROR') . ':table');
+				if (empty($clause['table'])) E(L('PARAM_ERROR') . ' : table');
 				$sqlTemplate = str_replace('%TABLE%', $this ->implode($clause['table']), $sqlTemplate);
 				$sqlTemplate = str_replace('%DATA%', '', $sqlTemplate);
 				if (!empty($clause['join'])) $sqlTemplate = str_replace('%JOIN%', $this ->implode($clause['join']), $sqlTemplate); else $sqlTemplate = str_replace('%JOIN%', '', $sqlTemplate);
@@ -44,7 +45,6 @@ class MySQLAdapter extends DBAdapter {
 					if (!isset($clause['limit'][1])) $limit .= ',' . $clause['limit'][1];
 				} else $limit = '';
 				$sqlTemplate = str_replace('%LIMIT%', $limit, $sqlTemplate);
-				echo $sqlTemplate;
 				break;
 			case 'find':
 				$sqlTemplate = str_replace('%SELECT%', 'SELECT', $sqlTemplate);
@@ -58,23 +58,47 @@ class MySQLAdapter extends DBAdapter {
 			case 'delete':
 				$sqlTemplate = str_replace('%SELECT%', 'DELE', $sqlTemplate);
 				break;
-			default:
+		}
+		return $sqlTemplate;
+	}
+
+	public function query($sql) {
+		$this->lastSql = $sql;
+		$this->queryId = mysql_query($sql, $this ->linkId);
+		if ($this->queryId===false) {
+			return false;
+		} else {
+			$this->numRows = mysql_num_rows($this->queryId);
+			return $this->getResult();
 		}
 	}
 
-	public function query() {
+	private function getResult() {
+		$result = array();
+		if ($this->numRows>0) {
+			while ($row = mysql_fetch_assoc($this->queryId)) {
+				$result[] = $row;
+			}
+			mysql_data_seek($this->queryId, 0);
+		}
+		return $result;
 	}
 
 	public function free() {
+		mysql_free_result($this->queryId);
+		$this->queryId = null;
 	}
 
 	public function error() {
+		$this->errorInfo = mysql_errno().':'.mysql_error($this->linkId);
+		if(!empty($this->lastSql)){
+			$this->errorInfo .= "\n [SQL] : ".$this->lastSql;
+		}
+		return $this->errorInfo;
 	}
 
 	public function close() {
-		if ($this ->linkId) {
-			mysql_close($this ->linkId);
-		}
+		if ($this ->linkId) mysql_close($this ->linkId);
 		$this ->linkId = null;
 	}
 }

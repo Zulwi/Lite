@@ -1,13 +1,14 @@
 <?php
 /**
  * Copyright (c) 2010-2014 Zulwi Studio All Rights Reserved.
- * Author  JerryLocke
- * DATE    2014/7/27
+ * Author  @JerryLocke
+ * Date    2014/7/27
  * Blog    http://Jerry.hk
  * Email   i@Jerry.hk
+ * Team    http://www.zhuwei.cc
  */
 
-if(! defined('LITE_PATH')) exit;
+if (!defined('LITE_PATH')) exit;
 
 /**
  * 数据库类
@@ -26,10 +27,6 @@ final class Db {
 	 * @var 配置
 	 */
 	private $config;
-	/**
-	 * @var 最后一次查询的SQL语句
-	 */
-	private $lastSql;
 	/**
 	 * @var 查询条件
 	 */
@@ -88,7 +85,8 @@ final class Db {
 			$config = array_change_key_case($config);
 			$config = array('type' => strtolower($config['db_type']), 'username' => $config['db_user'], 'password' => $config['db_pwd'], 'host' => $config['db_host'], 'port' => $config['db_port'], 'database' => $config['db_name'], 'charset' => isset($config['db_charset']) ? $config['db_charset'] : 'utf8',);
 		} else {
-			$config = array('type' => strtolower(C('DB_TYPE', null, 'mysql')), 'username' => C('DB_USER'), 'password' => C('DB_PWD'), 'host' => C('DB_HOST'), 'port' => C('DB_PORT'), 'database' => C('DB_NAME'), 'charset' => C('DB_CHARSET', null, 'utf8'),);
+			$config = array_merge(array('DB_TYPE' => 'MySQL', 'DB_HOST' => 'localhost', 'DB_PORT' => 3306, 'DB_USER' => 'root', 'DB_PWD' => '', 'DB_NAME' => 'database', 'DB_CHARSET' => 'utf8',), C('DB_CONFIG'));
+			$config = array('type' => strtolower($config['DB_TYPE']), 'username' => $config['DB_USER'], 'password' => $config['DB_PWD'], 'host' => $config['DB_HOST'], 'port' => $config['DB_PORT'], 'database' => $config['DB_NAME'], 'charset' => $config['DB_CHARSET']);
 		}
 		return $config;
 	}
@@ -100,6 +98,7 @@ final class Db {
 	 */
 	public function query($sql) {
 		$this ->lastSql = $sql;
+		echo $sql;
 		return $this ->adapter ->query($sql);
 	}
 
@@ -242,8 +241,8 @@ final class Db {
 	 * 取得最后一次查询的SQL语句
 	 * @return 最后一次查询的SQL语句
 	 */
-	public function getLastSql(){
-		return $this->lastSql;
+	public function getLastSql() {
+		return $this ->adapter ->getLastSql();
 	}
 
 	/**

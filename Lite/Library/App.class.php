@@ -1,10 +1,11 @@
 <?php
 /**
  * Copyright (c) 2010-2014 Zulwi Studio All Rights Reserved.
- * Author  JerryLocke
- * DATE    2014/7/27
+ * Author  @JerryLocke
+ * Date    2014/7/27
  * Blog    http://Jerry.hk
  * Email   i@Jerry.hk
+ * Team    http://www.zhuwei.cc
  */
 
 if (!defined('LITE_PATH')) exit;
@@ -17,19 +18,19 @@ class App {
 	/**
 	 * 普通URL模式
 	 */
-	const URL_MODEL_NORMAL = 0;
+	const URL_MODE_NORMAL = 0;
 	/**
 	 * PATHINFO URL模式
 	 */
-	const URL_MODEL_PATHINFO = 1;
+	const URL_MODE_PATHINFO = 1;
 	/**
 	 * 伪静态URL模式
 	 */
-	const URL_MODEL_REWRITE = 2;
+	const URL_MODE_REWRITE = 2;
 	/**
 	 * 兼容URL模式
 	 */
-	const URL_MODEL_SPECIAL = 3;
+	const URL_MODE_SPECIAL = 3;
 
 	/**
 	 * 项目初始化
@@ -79,15 +80,15 @@ class App {
 		$urlModel = C('URL_MODEL');
 		$group = $controller = $action = $param = '';
 		$pathinfo = !empty($_SERVER['PATH_INFO']) ? $_SERVER['PATH_INFO'] : '';
-		if ($urlModel!=self :: URL_MODEL_NORMAL) {
+		if ($urlModel!=self :: URL_MODE_NORMAL) {
 			$pathinfo = isset($_GET[$var['path']]) ? $_GET[$var['path']] : $pathinfo;
 			unset($_GET[$var['path']]);
 		}
 		if (startsWith($pathinfo, '/')) $pathinfo = substr($pathinfo, 1);
 		switch ($urlModel) {
-			case self :: URL_MODEL_PATHINFO:
-			case self :: URL_MODEL_SPECIAL:
-			case self :: URL_MODEL_REWRITE:
+			case self :: URL_MODE_PATHINFO:
+			case self :: URL_MODE_SPECIAL:
+			case self :: URL_MODE_REWRITE:
 				$matches = array();
 				if (preg_match_all('#(\w+)/(\w+)#', $pathinfo, $matches)) {
 					if (count($matches)==3) {
@@ -97,7 +98,7 @@ class App {
 					}
 				}
 				if (!empty($pathinfo)) $_GET[0] = explode('/', $pathinfo);
-			case self :: URL_MODEL_NORMAL:
+			case self :: URL_MODE_NORMAL:
 				$group = isset($_GET[$var['group']]) ? $_GET[$var['group']] : (isset($_GET[0][0]) ? $_GET[0][0] : C('DEFAULT_GROUP'));
 				$controller = isset($_GET[$var['controller']]) ? $_GET[$var['controller']] : (isset($_GET[0][1]) ? $_GET[0][1] : C('DEFAULT_CONTROLLER'));
 				$action = isset($_GET[$var['action']]) ? $_GET[$var['action']] : (isset($_GET[0][2]) ? $_GET[0][2] : C('DEFAULT_ACTION'));
