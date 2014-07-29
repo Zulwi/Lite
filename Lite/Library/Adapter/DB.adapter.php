@@ -48,6 +48,20 @@ abstract class DBAdapter {
 	public abstract function connect($config);
 
 	/**
+	 * 进行一次SQL查询
+	 * @param $sql
+	 * @return mixed
+	 */
+	public abstract function query($sql);
+
+	/**
+	 * 执行一条SQL语句
+	 * @param $sql
+	 * @return mixed
+	 */
+	public abstract function exec($sql);
+
+	/**
 	 * 生成SQL语句
 	 * @param $clause 条件
 	 * @return mixed 生成的SQL语句
@@ -73,16 +87,9 @@ abstract class DBAdapter {
 	public abstract function error();
 
 	/**
-	 * 连接SQL语句
-	 * @param $clause 条件
-	 * @return string 连接后的SQL语句
+	 * @return 最后一次查询的SQL语句
 	 */
-	protected function implode($clause) {
-		if (is_array($clause)) $clause = implode(',', $clause);
-		return $clause;
-	}
-
-	public function getLastSql(){
+	public function getLastSql() {
 		return $this->lastSql;
 	}
 }

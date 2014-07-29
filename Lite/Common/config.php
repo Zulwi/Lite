@@ -26,4 +26,5 @@ return array(
 	'DEFAULT_CONTROLLER'=>'Index',
 	'DEFAULT_ACTION'=>'Index',
 	'DEFAULT_PARAM'=>'',
+	'DEFAULT_TIMEZONE'=>'Asia/Shanghai',
 );

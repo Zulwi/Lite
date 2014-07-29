@@ -12,6 +12,17 @@ if (!defined('LITE_PATH')) exit;
 
 class IndexController extends Controller {
 	function Index() {
-		dump(DB::getInstance()->table('cache')->field(array('k', 'v'))->where("k=plugins")->select());
+		$db = DB::getInstance();
+		//dump($db->table('cache')->field(array('k', 'v'))->where(3)->find(5));
+		//echo $db->getLastSql();
+		//dump($db->table('cache')->field(array('k', 'v'))->where("k=plugins")->select());
+		//echo $db->getLastSql();
+		$data = array('k' => 'test', 'v' => 'test');
+		$db->table('cache')->insert($data);
+		echo $db->getLastSql();
+		$data['v'] = "'test`11";
+		$db->table('cache')->where(array('k' => 'test'))->update($data);
+		echo '<br />';
+		echo $db->getLastSql();
 	}
 }

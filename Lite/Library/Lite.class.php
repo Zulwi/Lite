@@ -30,6 +30,7 @@ class Lite {
 			define('MAGIC_QUOTES_GPC', get_magic_quotes_gpc() ? true : false);
 		} else define('MAGIC_QUOTES_GPC', false);
 		self::loadConfig();
+		date_default_timezone_set(C('DEFAULT_TIMEZONE'));
 		$app = new App();
 		$app ->init();
 	}

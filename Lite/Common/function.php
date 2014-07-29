@@ -8,7 +8,7 @@
  * Team    http://www.zhuwei.cc
  */
 
-if(! defined('LITE_PATH')) exit;
+if (!defined('LITE_PATH')) exit;
 
 /**
  * 配置函数
@@ -79,26 +79,20 @@ function endsWith($str, $suffix) {
  * 发送HTTP状态码
  * @param $code 状态码
  */
-function sendHttpStatus($code) {
+function sendHttpStatus($code, $clean = fase) {
 	static $_status = array( // Informational 1xx
-		100 => 'Continue', 101 => 'Switching Protocols',
-
-		// Success 2xx
-		200 => 'OK', 201 => 'Created', 202 => 'Accepted', 203 => 'Non-Authoritative Information', 204 => 'No Content', 205 => 'Reset Content', 206 => 'Partial Content',
-
-		// Redirection 3xx
-		300 => 'Multiple Choices', 301 => 'Moved Permanently', 302 => 'Found', // 1.1
+		100 => 'Continue', 101 => 'Switching Protocols', // Success 2xx
+		200 => 'OK', 201 => 'Created', 202 => 'Accepted', 203 => 'Non-Authoritative Information', 204 => 'No Content', 205 => 'Reset Content', 206 => 'Partial Content', // Redirection 3xx
+		300 => 'Multiple Choices', 301 => 'Moved Permanently', 302 => 'Moved Temporarily ', // 1.1
 		303 => 'See Other', 304 => 'Not Modified', 305 => 'Use Proxy', // 306 is deprecated but reserved
-		307 => 'Temporary Redirect',
-
-		// Client Error 4xx
-		400 => 'Bad Request', 401 => 'Unauthorized', 402 => 'Payment Required', 403 => 'Forbidden', 404 => 'Not Found', 405 => 'Method Not Allowed', 406 => 'Not Acceptable', 407 => 'Proxy Authentication Required', 408 => 'Request Timeout', 409 => 'Conflict', 410 => 'Gone', 411 => 'Length Required', 412 => 'Precondition Failed', 413 => 'Request Entity Too Large', 414 => 'Request-URI Too Long', 415 => 'Unsupported Media Type', 416 => 'Requested Range Not Satisfiable', 417 => 'Expectation Failed',
-
-		// Server Error 5xx
+		307 => 'Temporary Redirect', // Client Error 4xx
+		400 => 'Bad Request', 401 => 'Unauthorized', 402 => 'Payment Required', 403 => 'Forbidden', 404 => 'Not Found', 405 => 'Method Not Allowed', 406 => 'Not Acceptable', 407 => 'Proxy Authentication Required', 408 => 'Request Timeout', 409 => 'Conflict', 410 => 'Gone', 411 => 'Length Required', 412 => 'Precondition Failed', 413 => 'Request Entity Too Large', 414 => 'Request-URI Too Long', 415 => 'Unsupported Media Type', 416 => 'Requested Range Not Satisfiable', 417 => 'Expectation Failed', // Server Error 5xx
 		500 => 'Internal Server Error', 501 => 'Not Implemented', 502 => 'Bad Gateway', 503 => 'Service Unavailable', 504 => 'Gateway Timeout', 505 => 'HTTP Version Not Supported', 509 => 'Bandwidth Limit Exceeded');
 	if (isset($_status[$code])) {
-		ob_end_clean();
+		if ($clean) ob_end_clean();
 		header('HTTP/1.1 ' . $code . ' ' . $_status[$code]);
+		// 确保FastCGI模式下正常
+		header('Status:' . $code . ' ' . $_status[$code]);
 	}
 }
 
@@ -257,4 +251,47 @@ function randCode($length = 5, $type = 0) {
 		$code .= $string[rand(0, $count)];
 	}
 	return $code;
+}
+
+/**
+ * 获取客户端IP地址
+ * @param int $type 返回类型 0 返回IP地址 1 返回IPV4地址数字
+ * @param bool $adv 是否进行高级模式获取（有可能被伪装）
+ * @return mixed
+ */
+function getIp($type = 0, $adv = false) {
+	$type = $type ? 1 : 0;
+	static $ip = NULL;
+	if ($ip!==NULL) return $ip[$type];
+	if ($adv) {
+		if (isset($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+			$arr = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']);
+			$pos = array_search('unknown', $arr);
+			if (false!==$pos) unset($arr[$pos]);
+			$ip = trim($arr[0]);
+		} elseif (isset($_SERVER['HTTP_CLIENT_IP'])) {
+			$ip = $_SERVER['HTTP_CLIENT_IP'];
+		} elseif (isset($_SERVER['REMOTE_ADDR'])) {
+			$ip = $_SERVER['REMOTE_ADDR'];
+		}
+	} elseif (isset($_SERVER['REMOTE_ADDR'])) {
+		$ip = $_SERVER['REMOTE_ADDR'];
+	}
+	// IP地址合法验证
+	$long = sprintf("%u", ip2long($ip));
+	$ip = $long ? array($ip, $long) : array('0.0.0.0', 0);
+	return $ip[$type];
+}
+
+function escapeString($string, $force = 0, $strip = false) {
+	if (!MAGIC_QUOTES_GPC || $force) {
+		if (is_array($string)) {
+			foreach ($string as $key => $val) {
+				$string[$key] = escapeString($val, $force, $strip);
+			}
+		} else {
+			$string = addslashes($strip ? stripslashes($string) : $string);
+		}
+	}
+	return $string;
 }

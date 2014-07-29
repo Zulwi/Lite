@@ -27,41 +27,6 @@ class MySQLAdapter extends DBAdapter {
 		$this ->connected = true;
 	}
 
-	public function buildSql($clause) {
-		$sqlTemplate = '%SELECT% %FIELD% %FROM% %TABLE% %DATA% %JOIN% %WHERE% %LIMIT%';
-		switch ($clause['type']) {
-			case 'select':
-				$sqlTemplate = str_replace('%SELECT%', 'SELECT', $sqlTemplate);
-				if (empty($clause['field'])) $clause['field'] = '*';
-				$sqlTemplate = str_replace('%FIELD%', $this ->implode($clause['field']), $sqlTemplate);
-				$sqlTemplate = str_replace('%FROM%', 'FROM', $sqlTemplate);
-				if (empty($clause['table'])) E(L('PARAM_ERROR') . ' : table');
-				$sqlTemplate = str_replace('%TABLE%', $this ->implode($clause['table']), $sqlTemplate);
-				$sqlTemplate = str_replace('%DATA%', '', $sqlTemplate);
-				if (!empty($clause['join'])) $sqlTemplate = str_replace('%JOIN%', $this ->implode($clause['join']), $sqlTemplate); else $sqlTemplate = str_replace('%JOIN%', '', $sqlTemplate);
-				if (!empty($clause['where'])) $sqlTemplate = str_replace('%WHERE%', 'WHERE ' . $this ->implode($clause['where']), $sqlTemplate); else $sqlTemplate = str_replace('%WHERE%', '', $sqlTemplate);
-				if (isset($clause['limit'][0])) {
-					$limit = 'LIMIT ' . $clause['limit'][0];
-					if (!isset($clause['limit'][1])) $limit .= ',' . $clause['limit'][1];
-				} else $limit = '';
-				$sqlTemplate = str_replace('%LIMIT%', $limit, $sqlTemplate);
-				break;
-			case 'find':
-				$sqlTemplate = str_replace('%SELECT%', 'SELECT', $sqlTemplate);
-				break;
-			case 'insert':
-				$sqlTemplate = str_replace('%SELECT%', 'INSERT INTO', $sqlTemplate);
-				break;
-			case 'update':
-				$sqlTemplate = str_replace('%SELECT%', 'UPDATE', $sqlTemplate);
-				break;
-			case 'delete':
-				$sqlTemplate = str_replace('%SELECT%', 'DELE', $sqlTemplate);
-				break;
-		}
-		return $sqlTemplate;
-	}
-
 	public function query($sql) {
 		$this->lastSql = $sql;
 		$this->queryId = mysql_query($sql, $this ->linkId);
@@ -71,6 +36,11 @@ class MySQLAdapter extends DBAdapter {
 			$this->numRows = mysql_num_rows($this->queryId);
 			return $this->getResult();
 		}
+	}
+
+	public function exec($sql) {
+		$this->lastSql = $sql;
+		return mysql_query($sql);
 	}
 
 	private function getResult() {
@@ -84,21 +54,119 @@ class MySQLAdapter extends DBAdapter {
 		return $result;
 	}
 
+	public function buildSql($clause) {
+		if (empty($clause['table'])) E(L('NEED_PARAM') . ' : table');
+		$sqlTemplate = '%SELECT% %FIELD% %FROM% %TABLE%%DATA% %JOIN% %ORDER% %WHERE% %LIMIT%';
+		switch ($clause['type']) {
+			case 'select':
+				$sqlTemplate = str_replace('%SELECT%', 'SELECT', $sqlTemplate);
+				break;
+			case 'find':
+				$sqlTemplate = str_replace('%SELECT%', 'SELECT', $sqlTemplate);
+				break;
+			case 'insert':
+				$clause['field'] = array();
+				$clause['where'] = array();
+				$sqlTemplate = str_replace('%SELECT%', $clause['extra']['replace'] ? 'REPLACE INTO' : ($clause['extra']['ignore'] ? 'INSERT IGNORE INTO' : 'INSERT INTO'), $sqlTemplate);
+				break;
+			case 'update':
+				if (empty($clause['where'])) E(L('NEED_PARAM') . ' : where');
+				$sqlTemplate = str_replace('%SELECT%', 'UPDATE', $sqlTemplate);
+				break;
+			case 'delete':
+				$sqlTemplate = str_replace('%SELECT%', 'DELE', $sqlTemplate);
+				break;
+		}
+		if (empty($clause['field']) && $clause['type']=='select') $clause['field'] = '*';
+		$sqlTemplate = str_replace('%FIELD%', $clause['type']=='select' ? $this ->implode($clause['field'], 'field') : '', $sqlTemplate);
+		$sqlTemplate = str_replace('%FROM%', $clause['type']=='select' ? 'FROM' : '', $sqlTemplate);
+		$sqlTemplate = str_replace('%TABLE%', $this ->implode($clause['table'], 'table'), $sqlTemplate);
+		$sqlTemplate = str_replace('%DATA%', !empty($clause['data']) ? $this->implode($clause['data'], $clause['type']) : '', $sqlTemplate);
+		if (!empty($clause['join'])) $sqlTemplate = str_replace('%JOIN%', $this ->implode($clause['join'], 'join'), $sqlTemplate); else $sqlTemplate = str_replace('%JOIN%', '', $sqlTemplate);
+		$sqlTemplate = str_replace('%ORDER%', isset($clause['order']) ? 'ORDER BY ' . $clause['order'] : '', $sqlTemplate);
+		$sqlTemplate = str_replace('%WHERE%', !empty($clause['where']) ? $this ->implode($clause['where'], 'where') : '', $sqlTemplate);
+		if (isset($clause['limit'][0])) {
+			$limit = 'LIMIT ' . $clause['limit'][0];
+			if (isset($clause['limit'][1])) $limit .= ',' . $clause['limit'][1];
+		} else $limit = '';
+		$sqlTemplate = str_replace('%LIMIT%', $limit, $sqlTemplate);
+		return $sqlTemplate;
+	}
+
+	/**
+	 * 连接SQL语句
+	 * @param array $clause 条件
+	 * @param string $type 类型
+	 * @param string $separator 连接字符串
+	 * @return array|string 连接后的SQL语句
+	 */
+	private function implode($clause, $type = 'table', $separator = ' AND ') {
+		$sql = '';
+		if (is_string($clause)) {
+			if ($type=='where') $sql .= 'WHERE ';
+			$sql .= $clause;
+		} elseif (is_array($clause)) {
+			switch ($type) {
+				case 'field':
+				case 'table':
+					foreach ($clause as $k => $v) {
+						$sql .= is_numeric($k) ? "`{$v}`," : "`{$k}` as `{$v}`";
+					}
+					break;
+				case 'insert':
+					$field = array();
+					$value = array();
+					foreach ($clause as $k => $v) {
+						$field[] = "`{$k}`";
+						$value[] = "'" . escapeString($v) . "'";
+					}
+					$sql .= "(" . implode(',', $field) . ") VALUES(" . implode(',', $value) . ")";
+					break;
+				case 'update':
+					$sql = ' SET ';
+					foreach ($clause as $k => $v) {
+						$sql .= "`{$k}`='" . escapeString($v) . "',";
+					}
+					break;
+				case 'where':
+					$sql = 'WHERE ';
+					foreach ($clause as $k => $v) {
+						if (is_numeric($k)) {
+							$condition = explode('=', $v, 2);
+							$sql .= count($condition)==2 ? "`{$condition[0]}`='{$condition[1]}'" : "{$condition[0]}";
+						} else {
+							$sql .= "`{$k}`='" . escapeString($v) . "'{$separator}";
+						}
+					}
+					break;
+				case 'join':
+					//TODO JOIN子句连接方法
+					break;
+			}
+		}
+		if ($type=='where' && endsWith($sql, $separator)) $sql = substr($sql, 0, 0-strlen($separator));
+		if (endsWith($sql, ',')) $sql = rtrim($sql, ',');
+		return $sql;
+	}
+
 	public function free() {
 		mysql_free_result($this->queryId);
 		$this->queryId = null;
 	}
 
 	public function error() {
-		$this->errorInfo = mysql_errno().':'.mysql_error($this->linkId);
-		if(!empty($this->lastSql)){
-			$this->errorInfo .= "\n [SQL] : ".$this->lastSql;
+		$this->errorInfo = mysql_errno() . ':' . mysql_error($this->linkId);
+		if (!empty($this->lastSql)) {
+			$this->errorInfo .= "\n [SQL] : " . $this->lastSql;
 		}
 		return $this->errorInfo;
 	}
 
 	public function close() {
-		if ($this ->linkId) mysql_close($this ->linkId);
+		if ($this ->linkId) {
+			$this->free();
+			mysql_close($this ->linkId);
+		}
 		$this ->linkId = null;
 	}
 }

@@ -30,7 +30,7 @@ final class Db {
 	/**
 	 * @var 查询条件
 	 */
-	private $clause;
+	private $clause = array();
 
 	/**
 	 * 取得数据库连接实例
@@ -98,7 +98,6 @@ final class Db {
 	 */
 	public function query($sql) {
 		$this ->lastSql = $sql;
-		echo $sql;
 		return $this ->adapter ->query($sql);
 	}
 
@@ -118,8 +117,8 @@ final class Db {
 	 * @return $this 实例本身
 	 */
 	public function where($where) {
-		if (empty($where)) E(L('PARAM_ERROR') . ':where');
-		if (is_array($where)) $this ->clause['where'] = array_unique($where); elseif (is_string($where)) $this ->clause['where'][] = $where;
+		if (empty($where)) E(L('PARAM_ERROR') . ' : where');
+		if (is_array($where)) $this ->clause['where'] = array_unique($where); else $this ->clause['where'][] = $where;
 		return $this;
 	}
 
@@ -129,8 +128,8 @@ final class Db {
 	 * @return $this 实例本身
 	 */
 	public function field($field) {
-		if (empty($field)) E(L('PARAM_ERROR') . ':field');
-		if (is_array($field)) $this ->clause['field'] = array_unique($field); elseif (is_string($field)) $this ->clause['field'] = explode(',', $field);
+		if (empty($field)) E(L('PARAM_ERROR') . ' : field');
+		if (is_array($field)) $this ->clause['field'] = array_unique($field); else $this ->clause['field'] = explode(',', $field);
 		return $this;
 	}
 
@@ -140,8 +139,8 @@ final class Db {
 	 * @return $this 实例本身
 	 */
 	public function table($table) {
-		if (empty($table)) E(L('PARAM_ERROR') . ':table');
-		if (is_array($table)) $this ->clause['table'] = array_unique($table); elseif (is_string($table)) $this ->clause['table'] = explode(',', $table);
+		if (empty($table)) E(L('PARAM_ERROR') . ' : table');
+		if (is_array($table)) $this ->clause['table'] = array_unique($table); else $this ->clause['table'] = explode(',', $table);
 		return $this;
 	}
 
@@ -160,12 +159,19 @@ final class Db {
 
 	/**
 	 * 执行查询并返回一条结果
+	 * @param int $where 如果填入此数则清空where参数并按行数查询
 	 * @return mixed 结果
 	 */
-	public function find() {
+	public function find($where = 0) {
 		$this ->limit(1);
+		if ($where) {
+			$this ->clause['where'] = array();
+			$this ->clause['limit'] = array();
+			$this->where('id=' . $where);
+		}
 		$this ->clause['type'] = 'find';
-		return $this ->query($this ->buildSql());
+		$result = $this ->query($this ->buildSql());
+		return isset($result[0]) ? $result[0] : null;
 	}
 
 	/**
@@ -181,14 +187,18 @@ final class Db {
 
 	/**
 	 * 插入数据
-	 * @param $insert 要插入的数据
+	 * @param array $insert 要插入的数据
+	 * @param bool $replace 已有重复时是否替换数据
+	 * @param bool $ignore 是否忽略错误
 	 * @return mixed 执行结果
 	 */
-	public function insert($insert) {
-		if (empty($insert)) E(L('PARAM_ERROR') . ':insert');
-		if (is_array($insert)) $this ->clause['insert'] = array_unique($insert); elseif (is_string($insert)) $this ->clause['insert'] = explode(',', $insert);
+	public function insert($insert = array(), $replace = false, $ignore = false) {
+		if (empty($insert) || !is_array($insert)) E(L('PARAM_ERROR') . ' : insert');
+		$this ->clause['data'] = $insert;
 		$this ->clause['type'] = 'insert';
-		return $this ->query($this ->buildSql());
+		$this->clause['extra']['replace'] = $replace;
+		$this->clause['extra']['ignore'] = $ignore;
+		return $this ->exec($this ->buildSql());
 	}
 
 	/**
@@ -197,8 +207,8 @@ final class Db {
 	 * @return mixed 执行结果
 	 */
 	public function update($update) {
-		if (empty($update)) E(L('PARAM_ERROR') . ':update');
-		if (is_array($update)) $this ->clause['update'] = array_unique($update); elseif (is_string($update)) $this ->clause['update'] = explode(',', $update);
+		if (empty($update) || !is_array($update)) E(L('PARAM_ERROR') . ' : update');
+		if (is_array($update)) $this ->clause['data'] = $update;
 		$this ->clause['type'] = 'update';
 		return $this ->query($this ->buildSql());
 	}
@@ -208,7 +218,7 @@ final class Db {
 	 * @return mixed 执行结果
 	 */
 	public function delete() {
-		if (empty($this ->clause['where'])) E(L('PARAM_ERROR') . ':where');
+		if (empty($this ->clause['where'])) E(L('PARAM_ERROR') . ' : where');
 		$this ->clause['type'] = 'delete';
 		return $this ->query($this ->buildSql());
 	}
@@ -218,9 +228,9 @@ final class Db {
 	 * @return mixed SQL语句
 	 */
 	private function buildSql() {
-		$this ->lastSql = $this ->adapter ->buildSql($this ->clause);
+		$sql = $this ->adapter ->buildSql($this ->clause);
 		$this ->resetClause();
-		return $this ->lastSql;
+		return $sql;
 	}
 
 	/**
@@ -230,6 +240,7 @@ final class Db {
 		$this ->clause = array();
 		$this ->clause['field'] = array();
 		$this ->clause['table'] = array();
+		$this ->clause['data'] = array();
 		$this ->clause['join'] = array();
 		$this ->clause['where'] = array();
 		$this ->clause['limit'] = array();
