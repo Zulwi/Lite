@@ -31,5 +31,6 @@ class IndexController extends Controller {
 		echo '5.在 Cache 表删除 k 值为 plugins 的记录<br />';
 		$flag = $db->table('cache')->where(array('k' => 'test'))->delete();
 		echo '生成的SQL：' . $db->getLastSql() . '<br />影响条数：' . intval($flag) . '<br /><br />';
+		echo '用时' . (microtime(true)-START_TIME)*1000 . '毫秒';
 	}
 }

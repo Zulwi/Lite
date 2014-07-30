@@ -44,7 +44,7 @@ class Lite {
 		$path = LIB_PATH . $classname . '.class.php';
 		if (is_file($path)) {
 		} elseif (endsWith($classname, 'Adapter')) {
-			$path = LIB_PATH . 'Adapter/' . str_replace('Adapter', '', $classname) . '.adapter.php';
+			$path = LIB_PATH . 'Adapter/' . str_replace('Adapter', '', $classname) . '.adt.php';
 		} elseif (endsWith($classname, 'Controller')) {
 			$path = COMMON_GROUP . CONTROLLER_DIR . str_replace('Controller', C('CONTROLLER_EXT'), $classname);
 			if (!is_file($path) && defined('GROUP_PATH')) $path = GROUP_PATH . CONTROLLER_DIR . str_replace('Controller', C('CONTROLLER_EXT'), $classname);

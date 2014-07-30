@@ -10,51 +10,62 @@
 
 if (!defined('LITE_PATH')) exit;
 
-class MySQLAdapter extends DBAdapter {
-	public function __construct($config) {
-		if (!extension_loaded('mysql')) E(L('DB_UNSUPPORTED') . ': MySQL');
-		$this ->connect($config);
-	}
+/**
+ * 数据库适配器抽象类
+ * Class DBAdapter
+ */
+abstract class DBAdapter {
+	/**
+	 * @var 连接资源
+	 */
+	protected $linkId;
+	/**
+	 * @var 查询资源
+	 */
+	protected $queryId;
+	/**
+	 * @var int 查询结果行数
+	 */
+	protected $numRows = 0;
+	/**
+	 * @var 最后一次查询的SQL语句
+	 */
+	protected $lastSql = '';
+	/**
+	 * @var string 错误信息
+	 */
+	protected $errorInfo = '';
+	/**
+	 * @var bool 是否已连接
+	 */
+	protected $connected = false;
 
-	public function connect($config) {
-		if (empty($config)) E(L('DB_CONFIG_ERROR'));
-		$host = $config['host'] . ($config['port'] ? ":{$config['port']}" : '');
-		$this ->linkId = mysql_connect($host, $config['username'], $config['password'], true, 131072);
-		if (!$this ->linkId || (!empty($config['database']) && !mysql_select_db($config['database'], $this ->linkId))) E(mysql_error());
-		$dbVersion = mysql_get_server_info($this ->linkId);
-		mysql_query("SET NAMES '" . $config['charset'] . "'", $this ->linkId);
-		if ($dbVersion>'5.0.1') mysql_query("SET sql_mode=''", $this ->linkId);
-		$this ->connected = true;
-	}
+	/**
+	 * 连接数据库
+	 * @param $config 配置
+	 * @return mixed 连接实例
+	 */
+	public abstract function connect($config);
 
-	public function query($sql) {
-		$this->lastSql = $sql;
-		$this->queryId = mysql_query($sql, $this ->linkId);
-		if ($this->queryId===false) {
-			return false;
-		} else {
-			$this->numRows = mysql_num_rows($this->queryId);
-			return $this->getResult();
-		}
-	}
+	/**
+	 * 进行一次SQL查询
+	 * @param $sql
+	 * @return mixed
+	 */
+	public abstract function query($sql);
 
-	public function exec($sql, $getAffectedRows = false) {
-		$this->lastSql = $sql;
-		$flag = mysql_query($sql);
-		return $getAffectedRows ? ($flag ? mysql_affected_rows($this->linkId) : false) : $flag;
-	}
+	/**
+	 * 执行一条SQL语句
+	 * @param $sql
+	 * @return mixed
+	 */
+	public abstract function exec($sql);
 
-	private function getResult() {
-		$result = array();
-		if ($this->numRows>0) {
-			while ($row = mysql_fetch_assoc($this ->queryId)) {
-				$result[] = $row;
-			}
-			mysql_data_seek($this->queryId, 0);
-		}
-		return $result;
-	}
-
+	/**
+	 * 生成SQL语句
+	 * @param $clause 条件
+	 * @return mixed 生成的SQL语句
+	 */
 	public function buildSql($clause) {
 		if (empty($clause['table'])) E(L('NEED_PARAM') . ' : table');
 		$sqlTemplate = '%SELECT% %FIELD% %FROM% %TABLE%%DATA% %JOIN% %ORDER% %WHERE% %LIMIT%';
@@ -147,24 +158,34 @@ class MySQLAdapter extends DBAdapter {
 		return $sql;
 	}
 
-	public function free() {
-		mysql_free_result($this->queryId);
-		$this->queryId = null;
-	}
+	/**
+	 * 释放结果集
+	 * @return mixed 结果
+	 */
+	public abstract function free();
 
-	public function error() {
-		$this->errorInfo = mysql_errno() . ':' . mysql_error($this->linkId);
-		if (!empty($this->lastSql)) {
-			$this->errorInfo .= "\n [SQL] : " . $this->lastSql;
-		}
-		return $this->errorInfo;
-	}
+	/**
+	 * 关闭数据库
+	 * @return mixed 结果
+	 */
+	public abstract function close();
 
-	public function close() {
-		if ($this ->linkId) {
-			$this->free();
-			mysql_close($this ->linkId);
-		}
-		$this ->linkId = null;
+	/**
+	 * 取得上一次错误信息
+	 * @return mixed 错误信息
+	 */
+	public abstract function error();
+
+	/**
+	 * 取得上一次插入的ID
+	 * @return mixed
+	 */
+	public abstract function getLastInsertId();
+
+	/**
+	 * @return 最后一次查询的SQL语句
+	 */
+	public function getLastSql() {
+		return $this->lastSql;
 	}
 }

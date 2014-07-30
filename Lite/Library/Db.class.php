@@ -20,6 +20,10 @@ final class Db {
 	 */
 	private static $_instance = array();
 	/**
+	 * @var 数据库类型
+	 */
+	private $type;
+	/**
 	 * @var 适配器
 	 */
 	private $adapter;
@@ -53,21 +57,11 @@ final class Db {
 	 */
 	public function factory($config = '') {
 		$this ->config = $this ->parseConfig($config);
-		switch ($this ->config['type']) {
-			case 'mysql':
-				$type = 'MySQL';
-				break;
-			case 'mssql':
-				$type = 'MsSQL';
-				break;
-			case 'mariadb':
-				$type = 'MariaDB';
-				break;
-			case 'sqlite':
-				$type = 'SQLite';
-				break;
-			default:
-				E('不支持的数据库类型：' . $this ->config['type']);
+		if (strtolower($this ->config['type'])=='mysql' && !$this->config['pdo']) {
+			$type = $this->type = 'MySQL';
+		} else {
+			$type = 'PDO';
+			$this->type = $this ->config['type'];
 		}
 		$classname = $type . 'Adapter';
 		$this ->adapter = new $classname($this ->config);
@@ -85,8 +79,9 @@ final class Db {
 			$config = array_change_key_case($config);
 			$config = array('type' => strtolower($config['db_type']), 'username' => $config['db_user'], 'password' => $config['db_pwd'], 'host' => $config['db_host'], 'port' => $config['db_port'], 'database' => $config['db_name'], 'charset' => isset($config['db_charset']) ? $config['db_charset'] : 'utf8',);
 		} else {
-			$config = array_merge(array('DB_TYPE' => 'MySQL', 'DB_HOST' => 'localhost', 'DB_PORT' => 3306, 'DB_USER' => 'root', 'DB_PWD' => '', 'DB_NAME' => 'database', 'DB_CHARSET' => 'utf8',), C('DB_CONFIG'));
-			$config = array('type' => strtolower($config['DB_TYPE']), 'username' => $config['DB_USER'], 'password' => $config['DB_PWD'], 'host' => $config['DB_HOST'], 'port' => $config['DB_PORT'], 'database' => $config['DB_NAME'], 'charset' => $config['DB_CHARSET']);
+			$config = array_merge(array('DB_TYPE' => 'MySQL', 'DB_HOST' => 'localhost', 'DB_PORT' => 3306, 'DB_USER' => 'root', 'DB_PWD' => '', 'DB_NAME' => 'database', 'DB_CHARSET' => 'utf8', 'DB_FILE' => '', 'USE_PDO' => false), C('DB_CONFIG'));
+			if (strtolower($config['DB_TYPE'])=='sqlite') $config['DB_HOST'] = $config['DB_PORT'] = $config['DB_USER'] = $config['DB_PWD'] = $config['DB_NAME'] = '';;
+			$config = array('type' => strtolower($config['DB_TYPE']), 'username' => $config['DB_USER'], 'password' => $config['DB_PWD'], 'host' => $config['DB_HOST'], 'port' => $config['DB_PORT'], 'database' => $config['DB_NAME'], 'charset' => $config['DB_CHARSET'], 'file' => $config['DB_FILE'], 'pdo' => $config['USE_PDO']);
 		}
 		return $config;
 	}
