@@ -19,7 +19,8 @@ class MySQLAdapter extends DBAdapter {
 	public function connect($config) {
 		if (empty($config)) E(L('DB_CONFIG_ERROR'));
 		$host = $config['host'] . ($config['port'] ? ":{$config['port']}" : '');
-		$this ->linkId = mysql_connect($host, $config['username'], $config['password'], true, 131072);
+		$func = $config['pconnect'] ? 'mysql_pconnect' : 'mysql_connect';
+		$this ->linkId = @$func($host, $config['username'], $config['password'], true, 131072);
 		if (!$this ->linkId || (!empty($config['database']) && !mysql_select_db($config['database'], $this ->linkId))) E(mysql_error());
 		$dbVersion = mysql_get_server_info($this ->linkId);
 		mysql_query("SET NAMES '" . $config['charset'] . "'", $this ->linkId);

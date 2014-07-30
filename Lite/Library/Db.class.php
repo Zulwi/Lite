@@ -79,9 +79,9 @@ final class Db {
 			$config = array_change_key_case($config);
 			$config = array('type' => strtolower($config['db_type']), 'username' => $config['db_user'], 'password' => $config['db_pwd'], 'host' => $config['db_host'], 'port' => $config['db_port'], 'database' => $config['db_name'], 'charset' => isset($config['db_charset']) ? $config['db_charset'] : 'utf8',);
 		} else {
-			$config = array_merge(array('DB_TYPE' => 'MySQL', 'DB_HOST' => 'localhost', 'DB_PORT' => 3306, 'DB_USER' => 'root', 'DB_PWD' => '', 'DB_NAME' => 'database', 'DB_CHARSET' => 'utf8', 'DB_FILE' => '', 'USE_PDO' => false), C('DB_CONFIG'));
+			$config = array_merge(array('DB_TYPE' => 'MySQL', 'DB_HOST' => 'localhost', 'DB_PORT' => 3306, 'DB_USER' => 'root', 'DB_PWD' => '', 'DB_NAME' => 'database', 'DB_CHARSET' => 'utf8', 'DB_FILE' => '', 'PCONNECT' => false, 'USE_PDO' => false), C('DB_CONFIG'));
 			if (strtolower($config['DB_TYPE'])=='sqlite') $config['DB_HOST'] = $config['DB_PORT'] = $config['DB_USER'] = $config['DB_PWD'] = $config['DB_NAME'] = '';;
-			$config = array('type' => strtolower($config['DB_TYPE']), 'username' => $config['DB_USER'], 'password' => $config['DB_PWD'], 'host' => $config['DB_HOST'], 'port' => $config['DB_PORT'], 'database' => $config['DB_NAME'], 'charset' => $config['DB_CHARSET'], 'file' => $config['DB_FILE'], 'pdo' => $config['USE_PDO']);
+			$config = array('type' => strtolower($config['DB_TYPE']), 'username' => $config['DB_USER'], 'password' => $config['DB_PWD'], 'host' => $config['DB_HOST'], 'port' => $config['DB_PORT'], 'database' => $config['DB_NAME'], 'charset' => $config['DB_CHARSET'], 'file' => $config['DB_FILE'], 'pconnect' => $config['PCONNECT'], 'pdo' => $config['USE_PDO']);
 		}
 		return $config;
 	}
@@ -254,6 +254,6 @@ final class Db {
 	 * 关闭连接
 	 */
 	public function __destruct() {
-		$this ->adapter ->close();
+		if($this ->adapter) $this ->adapter ->close();
 	}
 }
