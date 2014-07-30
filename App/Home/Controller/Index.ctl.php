@@ -17,8 +17,8 @@ class IndexController extends Controller {
 		echo '1.查询 Cache 表 k 值为 plugins 的记录（单条）<br />记录信息：';
 		dump($db->table('cache')->field(array('k', 'v'))->where(array('k' => 'plugins'))->find());
 		echo '生成的SQL：' . $db->getLastSql() . '<br /><br />';
-		echo '2.查询 Cache 表的全部记录（多条）<br />记录信息：';
-		dump($db->table('cache')->select());
+		echo '2.查询 sign_log 表的全部记录并统计签到经验（多条）<br />记录信息：';
+		dump($db->table('sign_log')->field(array('SUM(exp)'=>'exp'))->group('uid')->select());
 		echo '生成的SQL：' . $db->getLastSql() . '<br /><br />';
 		echo '3.在 Cache 表插入一条记录<br />';
 		$data = array('k' => 'test', 'v' => 'test');

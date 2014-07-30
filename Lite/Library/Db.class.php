@@ -92,17 +92,16 @@ final class Db {
 	 * @return mixed 查询结果
 	 */
 	public function query($sql) {
-		$this ->lastSql = $sql;
 		return $this ->adapter ->query($sql);
 	}
 
 	/**
 	 * 执行一条SQL语句
 	 * @param $sql SQL语句
+	 * @param $getAffectedRows 是否返回受影响函数
 	 * @return mixed 执行结果
 	 */
 	public function exec($sql, $getAffectedRows) {
-		$this ->lastSql = $sql;
 		return $this ->adapter ->exec($sql, $getAffectedRows);
 	}
 
@@ -111,9 +110,10 @@ final class Db {
 	 * @param $where 条件
 	 * @return $this 实例本身
 	 */
-	public function where($where) {
+	public function where($where, $separator = ' AND ') {
 		if (empty($where)) E(L('PARAM_ERROR') . ' : where');
 		if (is_array($where)) $this ->clause['where'] = array_unique($where); else $this ->clause['where'][] = $where;
+		$this->clause['extra']['separator'] = $separator;
 		return $this;
 	}
 
@@ -124,7 +124,7 @@ final class Db {
 	 */
 	public function field($field) {
 		if (empty($field)) E(L('PARAM_ERROR') . ' : field');
-		if (is_array($field)) $this ->clause['field'] = array_unique($field); else $this ->clause['field'] = explode(',', $field);
+		$this ->clause['field'] = is_array($field) ? array_unique($field) : explode(',', $field);
 		return $this;
 	}
 
@@ -135,7 +135,24 @@ final class Db {
 	 */
 	public function table($table) {
 		if (empty($table)) E(L('PARAM_ERROR') . ' : table');
-		if (is_array($table)) $this ->clause['table'] = array_unique($table); else $this ->clause['table'] = explode(',', $table);
+		$this ->clause['table'] = is_array($table) ? array_unique($table) : explode(',', $table);
+		return $this;
+	}
+
+
+	/**
+	 * 添加 group by 子句
+	 * @param $group
+	 * @return $this
+	 */
+	public function group($group) {
+		if (is_string($group)) {
+			array_unshift($this->clause['field'], $group);
+			$this->clause['group'][] = $group;
+		} elseif (is_array($group)) {
+			$this->clause['field'] = array_merge($group, $this->clause['field']);
+			$this->clause['group'] = array_merge($group, $this->clause['group']);
+		}
 		return $this;
 	}
 
@@ -235,6 +252,7 @@ final class Db {
 		$this ->clause['field'] = array();
 		$this ->clause['table'] = array();
 		$this ->clause['data'] = array();
+		$this ->clause['group'] = array();
 		$this ->clause['join'] = array();
 		$this ->clause['where'] = array();
 		$this ->clause['limit'] = array();
@@ -254,6 +272,6 @@ final class Db {
 	 * 关闭连接
 	 */
 	public function __destruct() {
-		if($this ->adapter) $this ->adapter ->close();
+		if ($this ->adapter) $this ->adapter ->close();
 	}
 }

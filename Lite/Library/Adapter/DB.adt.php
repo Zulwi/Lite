@@ -68,7 +68,7 @@ abstract class DBAdapter {
 	 */
 	public function buildSql($clause) {
 		if (empty($clause['table'])) E(L('NEED_PARAM') . ' : table');
-		$sqlTemplate = '%SELECT% %FIELD% %FROM% %TABLE%%DATA% %JOIN% %ORDER% %WHERE% %LIMIT%';
+		$sqlTemplate = '%SELECT% %FIELD% %FROM% %TABLE%%DATA% %JOIN% %GROUP% %ORDER% %WHERE% %LIMIT%';
 		switch ($clause['type']) {
 			case 'select':
 				$sqlTemplate = str_replace('%SELECT%', 'SELECT', $sqlTemplate);
@@ -91,9 +91,10 @@ abstract class DBAdapter {
 		$sqlTemplate = str_replace('%FROM%', ($clause['type']=='select' || $clause['type']=='delete') ? 'FROM' : '', $sqlTemplate);
 		$sqlTemplate = str_replace('%TABLE%', $this ->implode($clause['table'], 'table'), $sqlTemplate);
 		$sqlTemplate = str_replace('%DATA%', !empty($clause['data']) ? $this->implode($clause['data'], $clause['type']) : '', $sqlTemplate);
+		$sqlTemplate = str_replace('%GROUP%', !empty($clause['group']) ? $this ->implode($clause['group'], 'group') : '', $sqlTemplate);
 		$sqlTemplate = str_replace('%JOIN%', !empty($clause['join']) ? $this ->implode($clause['join'], 'join') : '', $sqlTemplate);
 		$sqlTemplate = str_replace('%ORDER%', isset($clause['order']) ? 'ORDER BY ' . $clause['order'] : '', $sqlTemplate);
-		$sqlTemplate = str_replace('%WHERE%', !empty($clause['where']) ? $this ->implode($clause['where'], 'where') : '', $sqlTemplate);
+		$sqlTemplate = str_replace('%WHERE%', !empty($clause['where']) ? $this ->implode($clause['where'], 'where', $clause['extra']['separator']) : '', $sqlTemplate);
 		if (isset($clause['limit'][0])) {
 			$limit = 'LIMIT ' . $clause['limit'][0];
 			if (isset($clause['limit'][1])) $limit .= ',' . $clause['limit'][1];
@@ -119,7 +120,7 @@ abstract class DBAdapter {
 				case 'field':
 				case 'table':
 					foreach ($clause as $k => $v) {
-						$sql .= is_numeric($k) ? "`{$v}`," : "`{$k}` as `{$v}`";
+						$sql .= is_numeric($k) ? "{$v}," : "{$k} as `{$v}`,";
 					}
 					break;
 				case 'insert':
@@ -147,6 +148,9 @@ abstract class DBAdapter {
 							$sql .= "`{$k}`='" . escapeString($v) . "'{$separator}";
 						}
 					}
+					break;
+				case 'group':
+					$sql = 'GROUP BY ' . implode(',', $clause);
 					break;
 				case 'join':
 					//TODO JOIN子句连接方法

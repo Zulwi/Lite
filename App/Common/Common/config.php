@@ -19,7 +19,7 @@ return array(
 		'DB_USER' => 'sign', //数据库用户名
 		'DB_PWD' => 'nzjZj7Bxn5LM9RJa', //数据库密码
 		'DB_NAME' => 'sign', //数据库名
-		'PCONNECT' => false, //持久连接
+		'PCONNECT' => true, //持久连接
 		'USE_PDO' => true, //是否强制使用PDO，仅在数据库类型为 MySQL 时生效
 		),
 	'URL_MODEL' => 1, //URL模式
