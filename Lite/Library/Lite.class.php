@@ -25,6 +25,7 @@ class Lite {
 		set_exception_handler('Lite::appException');
 		spl_autoload_register('Lite::autoload');
 		require COMMON_PATH . 'function.php';
+		setCharset();
 		if (version_compare(PHP_VERSION, '5.4.0', '<')) {
 			@ini_set('magic_quotes_runtime', 0);
 			define('MAGIC_QUOTES_GPC', get_magic_quotes_gpc() ? true : false);

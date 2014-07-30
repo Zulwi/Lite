@@ -106,9 +106,9 @@ final class Db {
 	 * @param $sql SQL语句
 	 * @return mixed 执行结果
 	 */
-	public function exec($sql) {
+	public function exec($sql, $getAffectedRows) {
 		$this ->lastSql = $sql;
-		return $this ->adapter ->exec($sql);
+		return $this ->adapter ->exec($sql, $getAffectedRows);
 	}
 
 	/**
@@ -169,7 +169,7 @@ final class Db {
 			$this ->clause['limit'] = array();
 			$this->where('id=' . $where);
 		}
-		$this ->clause['type'] = 'find';
+		$this ->clause['type'] = 'select';
 		$result = $this ->query($this ->buildSql());
 		return isset($result[0]) ? $result[0] : null;
 	}
@@ -198,7 +198,7 @@ final class Db {
 		$this ->clause['type'] = 'insert';
 		$this->clause['extra']['replace'] = $replace;
 		$this->clause['extra']['ignore'] = $ignore;
-		return $this ->exec($this ->buildSql());
+		return $this ->exec($this ->buildSql(), true);
 	}
 
 	/**
@@ -210,7 +210,7 @@ final class Db {
 		if (empty($update) || !is_array($update)) E(L('PARAM_ERROR') . ' : update');
 		if (is_array($update)) $this ->clause['data'] = $update;
 		$this ->clause['type'] = 'update';
-		return $this ->query($this ->buildSql());
+		return $this ->exec($this ->buildSql(), true);
 	}
 
 	/**
@@ -218,9 +218,8 @@ final class Db {
 	 * @return mixed 执行结果
 	 */
 	public function delete() {
-		if (empty($this ->clause['where'])) E(L('PARAM_ERROR') . ' : where');
 		$this ->clause['type'] = 'delete';
-		return $this ->query($this ->buildSql());
+		return $this ->exec($this ->buildSql(), true);
 	}
 
 	/**

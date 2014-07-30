@@ -12,17 +12,24 @@ if (!defined('LITE_PATH')) exit;
 
 class IndexController extends Controller {
 	function Index() {
+		echo '【DB类测试】<br />';
 		$db = DB::getInstance();
-		//dump($db->table('cache')->field(array('k', 'v'))->where(3)->find(5));
-		//echo $db->getLastSql();
-		//dump($db->table('cache')->field(array('k', 'v'))->where("k=plugins")->select());
-		//echo $db->getLastSql();
+		echo '1.查询 Cache 表 k 值为 plugins 的记录（单条）<br />记录信息：';
+		dump($db->table('cache')->field(array('k', 'v'))->where(array('k' => 'plugins'))->find());
+		echo '生成的SQL：' . $db->getLastSql() . '<br /><br />';
+		echo '2.查询 Cache 表的全部记录（多条）<br />记录信息：';
+		dump($db->table('cache')->select());
+		echo '生成的SQL：' . $db->getLastSql() . '<br /><br />';
+		echo '3.在 Cache 表插入一条记录<br />';
 		$data = array('k' => 'test', 'v' => 'test');
-		$db->table('cache')->insert($data);
-		echo $db->getLastSql();
-		$data['v'] = "'test`11";
-		$db->table('cache')->where(array('k' => 'test'))->update($data);
-		echo '<br />';
-		echo $db->getLastSql();
+		$flag = $db->table('cache')->insert($data);
+		echo '生成的SQL：' . $db->getLastSql() . '<br />影响条数：' . intval($flag) . '<br /><br />';
+		echo '4.在 Cache 表更新 k 值为 plugins 的记录<br />';
+		$data['v'] = "testnow";
+		$flag = $db->table('cache')->where(array('k' => 'test'))->update($data);
+		echo '生成的SQL：' . $db->getLastSql() . '<br />影响条数：' . intval($flag) . '<br /><br />';
+		echo '5.在 Cache 表删除 k 值为 plugins 的记录<br />';
+		$flag = $db->table('cache')->where(array('k' => 'test'))->delete();
+		echo '生成的SQL：' . $db->getLastSql() . '<br />影响条数：' . intval($flag) . '<br /><br />';
 	}
 }

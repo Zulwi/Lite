@@ -21,7 +21,7 @@ class MySQLAdapter extends DBAdapter {
 		$host = $config['host'] . ($config['port'] ? ":{$config['port']}" : '');
 		$this ->linkId = mysql_connect($host, $config['username'], $config['password'], true, 131072);
 		if (!$this ->linkId || (!empty($config['database']) && !mysql_select_db($config['database'], $this ->linkId))) E(mysql_error());
-		$dbVersion = mysql_get_server_info($this ->linkId[$linkNum]);
+		$dbVersion = mysql_get_server_info($this ->linkId);
 		mysql_query("SET NAMES '" . $config['charset'] . "'", $this ->linkId);
 		if ($dbVersion>'5.0.1') mysql_query("SET sql_mode=''", $this ->linkId);
 		$this ->connected = true;
@@ -38,15 +38,16 @@ class MySQLAdapter extends DBAdapter {
 		}
 	}
 
-	public function exec($sql) {
+	public function exec($sql, $getAffectedRows = false) {
 		$this->lastSql = $sql;
-		return mysql_query($sql);
+		$flag = mysql_query($sql);
+		return $getAffectedRows ? ($flag ? mysql_affected_rows($this->linkId) : false) : $flag;
 	}
 
 	private function getResult() {
 		$result = array();
 		if ($this->numRows>0) {
-			while ($row = mysql_fetch_assoc($this->queryId)) {
+			while ($row = mysql_fetch_assoc($this ->queryId)) {
 				$result[] = $row;
 			}
 			mysql_data_seek($this->queryId, 0);
@@ -61,11 +62,7 @@ class MySQLAdapter extends DBAdapter {
 			case 'select':
 				$sqlTemplate = str_replace('%SELECT%', 'SELECT', $sqlTemplate);
 				break;
-			case 'find':
-				$sqlTemplate = str_replace('%SELECT%', 'SELECT', $sqlTemplate);
-				break;
 			case 'insert':
-				$clause['field'] = array();
 				$clause['where'] = array();
 				$sqlTemplate = str_replace('%SELECT%', $clause['extra']['replace'] ? 'REPLACE INTO' : ($clause['extra']['ignore'] ? 'INSERT IGNORE INTO' : 'INSERT INTO'), $sqlTemplate);
 				break;
@@ -74,15 +71,16 @@ class MySQLAdapter extends DBAdapter {
 				$sqlTemplate = str_replace('%SELECT%', 'UPDATE', $sqlTemplate);
 				break;
 			case 'delete':
-				$sqlTemplate = str_replace('%SELECT%', 'DELE', $sqlTemplate);
+				if (empty($clause['where'])) E(L('NEED_PARAM') . ' : where');
+				$sqlTemplate = str_replace('%SELECT%', 'DELETE', $sqlTemplate);
 				break;
 		}
 		if (empty($clause['field']) && $clause['type']=='select') $clause['field'] = '*';
 		$sqlTemplate = str_replace('%FIELD%', $clause['type']=='select' ? $this ->implode($clause['field'], 'field') : '', $sqlTemplate);
-		$sqlTemplate = str_replace('%FROM%', $clause['type']=='select' ? 'FROM' : '', $sqlTemplate);
+		$sqlTemplate = str_replace('%FROM%', ($clause['type']=='select' || $clause['type']=='delete') ? 'FROM' : '', $sqlTemplate);
 		$sqlTemplate = str_replace('%TABLE%', $this ->implode($clause['table'], 'table'), $sqlTemplate);
 		$sqlTemplate = str_replace('%DATA%', !empty($clause['data']) ? $this->implode($clause['data'], $clause['type']) : '', $sqlTemplate);
-		if (!empty($clause['join'])) $sqlTemplate = str_replace('%JOIN%', $this ->implode($clause['join'], 'join'), $sqlTemplate); else $sqlTemplate = str_replace('%JOIN%', '', $sqlTemplate);
+		$sqlTemplate = str_replace('%JOIN%', !empty($clause['join']) ? $this ->implode($clause['join'], 'join') : '', $sqlTemplate);
 		$sqlTemplate = str_replace('%ORDER%', isset($clause['order']) ? 'ORDER BY ' . $clause['order'] : '', $sqlTemplate);
 		$sqlTemplate = str_replace('%WHERE%', !empty($clause['where']) ? $this ->implode($clause['where'], 'where') : '', $sqlTemplate);
 		if (isset($clause['limit'][0])) {
@@ -90,7 +88,7 @@ class MySQLAdapter extends DBAdapter {
 			if (isset($clause['limit'][1])) $limit .= ',' . $clause['limit'][1];
 		} else $limit = '';
 		$sqlTemplate = str_replace('%LIMIT%', $limit, $sqlTemplate);
-		return $sqlTemplate;
+		return trim($sqlTemplate) . ';';
 	}
 
 	/**
