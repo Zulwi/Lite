@@ -19,10 +19,11 @@ class PDOAdapter extends DBAdapter {
 	public function connect($config) {
 		if (empty($config)) E(L('DB_CONFIG_ERROR'));
 		$dsn = $config['type'] . ':';
+		$dsn .= (!empty($config['file']) && strtolower($config['type'])=='sqlite') ? $config['file']: '';
 		$dsn .= !empty($config['host']) ? 'host=' . $config['host'] . ';' : '';
 		$dsn .= !empty($config['port']) ? 'port=' . $config['port'] . ';' : '';
 		$dsn .= !empty($config['database']) ? 'dbname=' . $config['database'] . ';' : '';
-		$dsn .= (!empty($config['file']) && strtolower($config['type'])=='sqlite') ? $config['file'] : '';
+		$dsn .= (!empty($config['charset']) && strtolower($config['type'])!='sqlite') ? 'charset=' . $config['charset'] . ';' : '';
 		$this ->linkId = new PDO($dsn, $config['username'], $config['password'], array(PDO::ATTR_PERSISTENT => $config['pconnect']));
 		if (!$this ->linkId) E($config['type'] . ' ' . L('CONNECT_FAIL'));
 		$this ->connected = true;

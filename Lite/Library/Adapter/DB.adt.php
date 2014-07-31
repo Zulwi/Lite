@@ -68,7 +68,7 @@ abstract class DBAdapter {
 	 */
 	public function buildSql($clause) {
 		if (empty($clause['table'])) E(L('NEED_PARAM') . ' : table');
-		$sqlTemplate = '%SELECT% %FIELD% %FROM% %TABLE%%DATA% %JOIN% %GROUP% %ORDER% %WHERE% %LIMIT%';
+		$sqlTemplate = '%SELECT% %FIELD% %FROM% %TABLE%%DATA% %JOIN% %GROUP% %WHERE% %ORDER% %LIMIT%';
 		switch ($clause['type']) {
 			case 'select':
 				$sqlTemplate = str_replace('%SELECT%', 'SELECT', $sqlTemplate);
@@ -93,7 +93,7 @@ abstract class DBAdapter {
 		$sqlTemplate = str_replace('%DATA%', !empty($clause['data']) ? $this->implode($clause['data'], $clause['type']) : '', $sqlTemplate);
 		$sqlTemplate = str_replace('%GROUP%', !empty($clause['group']) ? $this ->implode($clause['group'], 'group') : '', $sqlTemplate);
 		$sqlTemplate = str_replace('%JOIN%', !empty($clause['join']) ? $this ->implode($clause['join'], 'join') : '', $sqlTemplate);
-		$sqlTemplate = str_replace('%ORDER%', isset($clause['order']) ? 'ORDER BY ' . $clause['order'] : '', $sqlTemplate);
+		$sqlTemplate = str_replace('%ORDER%', !empty($clause['order']) ? 'ORDER BY ' . $clause['order'] : '', $sqlTemplate);
 		$sqlTemplate = str_replace('%WHERE%', !empty($clause['where']) ? $this ->implode($clause['where'], 'where', $clause['extra']['separator']) : '', $sqlTemplate);
 		if (isset($clause['limit'][0])) {
 			$limit = 'LIMIT ' . $clause['limit'][0];

@@ -32,8 +32,10 @@ class IndexController extends Controller {
 		$flag = $db->table('cache')->where(array('k' => 'test'))->delete();
 		echo '生成的SQL：' . $db->getLastSql() . '<br />影响条数：' . intval($flag) . '<br /><br />';
 		echo '6.在 sign_log 表查询 uid 值为 4 且 date 值为 20140517 的签到记录<br />';
-		dump($db->table(array('sign_log' => 'l'))->join(array('_table' => 'my_tieba', '_as' => 't', '_on' => 't.tid = l.tid', '_type' => 'LEFT JOIN'))->where(array('l.uid' => '4', 'l.date' => '20140517'))->select());
+		dump($db->table(array('sign_log' => 'l'))->join(array('_table' => 'my_tieba', '_as' => 't', '_on' => 't.tid = l.tid', '_type' => 'LEFT JOIN'))->where(array('l.uid' => '4', 'l.date' => '20140517'))->order('l.uid DESC')->select());
 		echo '生成的SQL：' . $db->getLastSql() . '<br />影响条数：' . intval($flag) . '<br /><br />';
-		echo '用时' . (microtime(true)-START_TIME)*1000 . '毫秒';
+		echo '用时' . (microtime(true)-START_TIME)*1000 . '毫秒<br /><br />';
+		echo '【GET测试】<br />GET值：';
+		dump($_GET);
 	}
 }

@@ -76,9 +76,9 @@ class App {
 	 * 路由分发
 	 */
 	public function dispatch() {
-		$var = array('path' => C('VAR_PATHINFO'), 'group' => C('VAR_GROUP'), 'controller' => C('VAR_CONTROLLER'), 'action' => C('VAR_ACTION'), 'param' => C('VAR_PARAM'));
+		$var = array('path' => C('VAR_PATHINFO'), 'group' => C('VAR_GROUP'), 'controller' => C('VAR_CONTROLLER'), 'action' => C('VAR_ACTION'));
 		$urlModel = C('URL_MODEL');
-		$group = $controller = $action = $param = '';
+		$group = $controller = $action = '';
 		$pathinfo = !empty($_SERVER['PATH_INFO']) ? $_SERVER['PATH_INFO'] : '';
 		if ($urlModel!=self :: URL_MODE_NORMAL) {
 			$pathinfo = isset($_GET[$var['path']]) ? $_GET[$var['path']] : $pathinfo;
@@ -89,11 +89,21 @@ class App {
 			case self :: URL_MODE_PATHINFO:
 			case self :: URL_MODE_SPECIAL:
 			case self :: URL_MODE_REWRITE:
-				$matches = array();
-				if (preg_match_all('#(\w+)/(\w+)#', $pathinfo, $matches)) {
-					if (count($matches)==3) {
-						foreach ($matches[1] as $key => $value) {
-							$_GET[$value] = $matches[2][$key];
+				$virgule = substr_count($pathinfo, '/');
+				if ($virgule>2) {
+					$pos = strpos($pathinfo, '?');
+					if ($pos) {
+						$param = explode('&', substr($pathinfo, $pos));
+						foreach ($param as $slice) {
+							$slice = explode('=', $slice);
+							if (count(array_filter($slice))==2) $_GET[$slice[0]] = $slice[1];
+						}
+					} else {
+						for ($i = 3; $i<$virgule; $i += 2) {
+							$first = getStrPosByCount($pathinfo, '/', $i)+1;
+							$last = getStrPosByCount($pathinfo, '/', $i+2)-$first-1;
+							$param = explode('/', substr($pathinfo, $first, $last>=0 ? $last : -1));
+							if (count(array_filter($param))==2) $_GET[$param[0]] = $param[1];
 						}
 					}
 				}
@@ -102,17 +112,15 @@ class App {
 				$group = isset($_GET[$var['group']]) ? $_GET[$var['group']] : (isset($_GET[0][0]) ? $_GET[0][0] : C('DEFAULT_GROUP'));
 				$controller = isset($_GET[$var['controller']]) ? $_GET[$var['controller']] : (isset($_GET[0][1]) ? $_GET[0][1] : C('DEFAULT_CONTROLLER'));
 				$action = isset($_GET[$var['action']]) ? $_GET[$var['action']] : (isset($_GET[0][2]) ? $_GET[0][2] : C('DEFAULT_ACTION'));
-				$param = isset($_GET[$var['param']]) ? $_GET[$var['param']] : (isset($_GET[0][3]) ? $_GET[0][3] : C('DEFAULT_PARAM'));
 				break;
 		}
 		define('__DOMAIN__', $_SERVER['HTTP_HOST']);
 		define('__GROUP__', htmlspecialchars(urldecode($group)));
 		define('__CONTROLLER__', htmlspecialchars(urldecode($controller)));
 		define('__ACTION__', htmlspecialchars(urldecode($action)));
-		define('__PARAM__', htmlspecialchars(urldecode($param)));
 		define('GROUP_PATH', APP_PATH . __GROUP__ . '/');
+		$_GET[$var['group']] = __GROUP__;
 		$_GET[$var['controller']] = __CONTROLLER__;
 		$_GET[$var['action']] = __ACTION__;
-		$_GET[$var['param']] = __PARAM__;
 	}
 }

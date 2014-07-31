@@ -13,7 +13,7 @@ if(! defined('LITE_PATH')) exit;
 return array(
 	'DB_CONFIG' => array(
 		'DB_TYPE' => 'mysql', //数据库类型
-		'DB_FILE' =>'db.db', //数据库文件地址，仅在数据库类型为 sqlite 时有效
+		'DB_FILE' =>'db.db', //数据库文件路径，仅在数据库类型为 SQLite 时有效
 		'DB_HOST' => 'localhost', //数据库地址
 		'DB_PORT' => 3306, //数据库端口
 		'DB_USER' => 'sign', //数据库用户名

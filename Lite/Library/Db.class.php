@@ -157,6 +157,11 @@ final class Db {
 		return $this;
 	}
 
+	public function order($order) {
+		$this ->clause['order'] = $order;
+		return $this;
+	}
+
 	/**
 	 * 添加 join 子句
 	 * @param $join
@@ -281,6 +286,7 @@ final class Db {
 		$this ->clause['group'] = array();
 		$this ->clause['join'] = array();
 		$this ->clause['where'] = array();
+		$this ->clause['order'] = array();
 		$this ->clause['limit'] = array();
 		$this ->clause['extra'] = array();
 		$this ->clause['type'] = '';

@@ -223,9 +223,9 @@ function wrapText($str) {
 function checkString($type, $string) {
 	switch ($type) {
 		case 'email':
-			return preg_match('/^[A-z0-9._-]+@[A-z0-9._-]+\.[A-z0-9._-]+$/', $email);
+			return preg_match('/^[A-z0-9._-]+@[A-z0-9._-]+\.[A-z0-9._-]+$/', $string);
 		case 'password':
-			return preg_match('/^[\w~!@#$%^&*()_+{}:"<>?\-=[\];\',.\/]{8,16}$/', $password);
+			return preg_match('/^[\w~!@#$%^&*()_+{}:"<>?\-=[\];\',.\/]{8,16}$/', $string);
 	}
 }
 
@@ -283,7 +283,14 @@ function getIp($type = 0, $adv = false) {
 	return $ip[$type];
 }
 
-function escapeString($string, $force = 0, $strip = false) {
+/**
+ * 为字符串添加转义字符
+ * @param $string 字符串
+ * @param bool $force 是否强制
+ * @param bool $strip 是否先过滤
+ * @return array|string
+ */
+function escapeString($string, $force = false, $strip = false) {
 	if (!MAGIC_QUOTES_GPC || $force) {
 		if (is_array($string)) {
 			foreach ($string as $key => $val) {
@@ -294,4 +301,19 @@ function escapeString($string, $force = 0, $strip = false) {
 		}
 	}
 	return $string;
+}
+
+/**
+ * 查找字符串第n次出现的位置
+ * @param string $str 被查找的字符串
+ * @param string $find 要查找的元素
+ * @param int $count 指定次数
+ * @param int $offset 偏移量
+ * @return int 位置
+ */
+function getStrPosByCount($str, $find, $count, $offset = 0) {
+	$pos = stripos($str, $find, $offset);
+	$count--;
+	if ($count>0 && $pos!==false) $pos = getStrPosByCount($str, $find, $count, $pos+1);
+	return $pos;
 }
