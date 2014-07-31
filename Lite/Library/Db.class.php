@@ -108,7 +108,8 @@ final class Db {
 	/**
 	 * 添加 where 子句
 	 * @param $where 条件
-	 * @return $this 实例本身
+	 * @param string $separator 连接符
+	 * @return $this
 	 */
 	public function where($where, $separator = ' AND ') {
 		if (empty($where)) E(L('PARAM_ERROR') . ' : where');
@@ -152,6 +153,31 @@ final class Db {
 		} elseif (is_array($group)) {
 			$this->clause['field'] = array_merge($group, $this->clause['field']);
 			$this->clause['group'] = array_merge($group, $this->clause['group']);
+		}
+		return $this;
+	}
+
+	/**
+	 * 添加 join 子句
+	 * @param $join
+	 * @return $this
+	 */
+	public function join($join) {
+		$join = func_get_args();
+		$table = array();
+		foreach ($join as $clause) {
+			if (!empty($clause['_table'])) $table[$clause['_table']] = $currentTable = (!empty($clause['_as']) ? $clause['_as'] : $clause['_table']);
+			foreach ($clause as $k => $v) {
+				if (!in_array($k, array('_on', '_table', '_as', '_type')) || is_numeric($k)) {
+					if (is_numeric($k)) {
+						$this->clause['field'][] = "{$currentTable}.{$v}";
+					} else {
+						$this->clause['field']["{$currentTable}.{$k}"] = $v;
+					}
+				} else {
+					$this->clause['join'][$clause['_table']][$k] = $v;
+				}
+			}
 		}
 		return $this;
 	}

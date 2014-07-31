@@ -118,9 +118,13 @@ abstract class DBAdapter {
 		} elseif (is_array($clause)) {
 			switch ($type) {
 				case 'field':
-				case 'table':
 					foreach ($clause as $k => $v) {
 						$sql .= is_numeric($k) ? "{$v}," : "{$k} as `{$v}`,";
+					}
+					break;
+				case 'table':
+					foreach ($clause as $k => $v) {
+						$sql .= is_numeric($k) ? "{$v}," : "{$k} {$v},";
 					}
 					break;
 				case 'insert':
@@ -143,9 +147,9 @@ abstract class DBAdapter {
 					foreach ($clause as $k => $v) {
 						if (is_numeric($k)) {
 							$condition = explode('=', $v, 2);
-							$sql .= count($condition)==2 ? "`{$condition[0]}`='{$condition[1]}'" : "{$condition[0]}";
+							$sql .= count($condition)==2 ? "{$condition[0]}='{$condition[1]}'" : "{$condition[0]}";
 						} else {
-							$sql .= "`{$k}`='" . escapeString($v) . "'{$separator}";
+							$sql .= "{$k}='" . escapeString($v) . "'{$separator}";
 						}
 					}
 					break;
@@ -153,7 +157,9 @@ abstract class DBAdapter {
 					$sql = 'GROUP BY ' . implode(',', $clause);
 					break;
 				case 'join':
-					//TODO JOIN子句连接方法
+					foreach ($clause as $k => $v) {
+						$sql .= "{$v['_type']} {$k} {$v['_as']} ON {$v['_on']}";
+					}
 					break;
 			}
 		}
